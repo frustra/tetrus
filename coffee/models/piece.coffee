@@ -62,46 +62,56 @@ class Tetrus.Piece
       tmpstorage = new Array(newstorage.length)
       for x in [0...newwidth] by 1
         for y in [0...newheight] by 1
-          tmpstorage[(newheight - y - 1 + x * newwidth) * 4] = newstorage[(x + y * newwidth) * 4]
-          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1]
-          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2]
-          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3]
+          tmpstorage[(newheight - y - 1 + x * newheight) * 4] = newstorage[(x + y * newwidth) * 4]
+          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1]
+          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2]
+          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3]
       newstorage = (x for x in tmpstorage)
       tmp = newwidth
       newwidth = newheight
       newheight = tmp
 
-    deltaX = Math.floor(@width / 2 - newwidth / 2)
-    deltaY = Math.floor(@height / 2 - newheight / 2)
+    deltaX = @width - newwidth
+    deltaY = 0 # Math.floor(newheight / 2 - @height / 2)
 
     collide = -> Tetrus.get('controllers.game').game.collide(arguments...)
 
-    unless collide(newstorage, @position.x + deltaX, @position.y + deltaY)
+    unless collide(newstorage, @position.x + deltaX, @position.y + deltaY, newwidth, newheight)
       @storage = newstorage
+      @width = newwidth
+      @height = newheight
       @position.x += deltaX
       @position.y += deltaY
     else
       radius = 2
       for dy in [-radius..0] by -1
         for dx in [1..radius] by 1
-          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy)
+          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
             @storage = newstorage
+            @width = newwidth
+            @height = newheight
             @position.x += deltaX + dx
             @position.y += deltaY - dy
             return
-          unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY - dy)
+          unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY - dy, newwidth, newheight)
             @storage = newstorage
+            @width = newwidth
+            @height = newheight
             @position.x += deltaX - dx
             @position.y += deltaY - dy
             return
           unless dy == 0
-            unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy)
+            unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy, newwidth, newheight)
               @storage = newstorage
+              @width = newwidth
+              @height = newheight
               @position.x += deltaX + dx
               @position.y += deltaY + dy
               return
-            unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY + dy)
+            unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY + dy, newwidth, newheight)
               @storage = newstorage
+              @width = newwidth
+              @height = newheight
               @position.x += deltaX - dx
               @position.y += deltaY + dy
               return
