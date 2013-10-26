@@ -8,7 +8,6 @@ class Tetrus.Game
 
   loop: =>
     ctrl = Tetrus.get('controllers.game')
-    return unless ctrl.connected
     piece = @player.piece
     ctrl.send(type: 'piece', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
 
@@ -23,8 +22,6 @@ class Tetrus.Game
       @player.setNextPiece()
 
   fallLoop: =>
-    ctrl = Tetrus.get('controllers.game')
-    return unless ctrl.connected
     @fall()
     setTimeout(@fallLoop, @speed)
 
@@ -34,7 +31,7 @@ class Tetrus.Game
       pos.x += dx
 
   placePiece: (piece) ->
-    if piece.position.y <= 0
+    if piece.position.y < 0
       Tetrus.Flash.message("Game Over")
       Tetrus.get('controllers.game').disconnect()
     for x in [0...piece.width] by 1
@@ -44,6 +41,20 @@ class Tetrus.Game
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 1] = piece.storage[(x + y * piece.width) * 4 + 1]
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2]
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
+    @clearLines()
+
+  clearLines: ->
+    for y in [0...@board.height] by 1
+      all = @board.width
+      for x in [0...@board.width] by 1
+        all-- if @board.storage[(x + y * @board.width) * 4 + 3] > 0
+      if all == 0
+        for y2 in [y...0] by -1
+          @board.storage[(x + y2 * @board.width) * 4] = @board.storage[(x + (y2 - 1) * @board.width) * 4]
+          @board.storage[(x + y2 * @board.width) * 4 + 1] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 1]
+          @board.storage[(x + y2 * @board.width) * 4 + 2] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 2]
+          @board.storage[(x + y2 * @board.width) * 4 + 3] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 3]
+        @board.storage[(x + y2 * @board.width) * 4 + 3] = 0
 
     ctrl = Tetrus.get('controllers.game')
     ctrl.send(type: 'board', board: { storage: @board.storage })
