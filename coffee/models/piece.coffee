@@ -84,8 +84,9 @@ class Tetrus.Piece
       @position.y += deltaY
     else
       radius = 2
-      for dy in [-radius..0] by -1
-        for dx in [1..radius] by 1
+      for dy in [0..radius] by 1
+        for dx in [0..radius] by 1
+          continue if dx == 0 and dy == 0
           unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
             @storage = newstorage
             @width = newwidth

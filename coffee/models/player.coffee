@@ -3,7 +3,7 @@ class Tetrus.Player
     @nextPiece = new Tetrus.Piece(peer) unless peer
     @piece = new Tetrus.Piece(peer)
 
-  nextPiece: ->
+  setNextPiece: ->
     @piece = @nextPiece
     @nextPiece = new Tetrus.Piece()
     @piece.position.x = 5 - (@piece.width / 2)

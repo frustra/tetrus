@@ -244,6 +244,12 @@
       pos = this.player.piece.position;
       if (!this.collide(this.player.piece.storage, pos.x, pos.y + 1, this.player.piece.width, this.player.piece.height)) {
         return pos.y++;
+<<<<<<< HEAD
+=======
+      } else {
+        this.placePiece(this.player.piece);
+        return this.player.setNextPiece();
+>>>>>>> Block placing, sortof
       }
     };
 
@@ -260,10 +266,44 @@
       }
     };
 
+<<<<<<< HEAD
     Game.prototype.collide = function(storage, x, y, width, height) {
       var dx, dy, _i, _j;
       if (x < 0 || y < 0 || x + width >= this.board.width || y + height >= this.board.height) {
         true;
+=======
+    Game.prototype.placePiece = function(piece) {
+      var x, y, _i, _ref1, _results;
+      if (piece.position.y < 0) {
+        Tetrus.Flash.message("Game Over");
+        Tetrus.get('controllers.game').disconnect();
+      }
+      _results = [];
+      for (x = _i = 0, _ref1 = piece.width; _i < _ref1; x = _i += 1) {
+        _results.push((function() {
+          var _j, _ref2, _results1;
+          _results1 = [];
+          for (y = _j = 0, _ref2 = piece.height; _j < _ref2; y = _j += 1) {
+            if (piece.storage[(x + y * piece.width) * 4 + 3] > 0) {
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4] = piece.storage[(x + y * piece.width) * 4];
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 1] = piece.storage[(x + y * piece.width) * 4 + 1];
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2];
+              _results1.push(this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 3] = 255);
+            } else {
+              _results1.push(void 0);
+            }
+          }
+          return _results1;
+        }).call(this));
+      }
+      return _results;
+    };
+
+    Game.prototype.collide = function(storage, x, y, width, height) {
+      var dx, dy, _i, _j;
+      if (x < 0 || y < 0 || x + (width - 1) >= this.board.width || y + (height - 1) >= this.board.height) {
+        return true;
+>>>>>>> Block placing, sortof
       }
       for (dx = _i = 0; _i < width; dx = _i += 1) {
         for (dy = _j = 0; _j < height; dy = _j += 1) {
@@ -436,8 +476,16 @@
         return this.position.y += deltaY;
       } else {
         radius = 2;
+<<<<<<< HEAD
         for (dy = _l = -radius; _l >= 0; dy = _l += -1) {
           for (dx = _m = 1; _m <= radius; dx = _m += 1) {
+=======
+        for (dy = _l = 0; _l <= radius; dy = _l += 1) {
+          for (dx = _m = 0; _m <= radius; dx = _m += 1) {
+            if (dx === 0 && dy === 0) {
+              continue;
+            }
+>>>>>>> Block placing, sortof
             if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY - dy, newwidth, newheight)) {
               this.storage = newstorage;
               this.width = newwidth;
@@ -496,7 +544,7 @@
       this.piece = new Tetrus.Piece(peer);
     }
 
-    Player.prototype.nextPiece = function() {
+    Player.prototype.setNextPiece = function() {
       this.piece = this.nextPiece;
       this.nextPiece = new Tetrus.Piece();
       this.piece.position.x = 5 - (this.piece.width / 2);
