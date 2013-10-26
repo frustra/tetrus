@@ -1,0 +1,8 @@
+<h3>playing with <span data-bind="peer.username"></span></h3>
+<form data-event-submit="sendMessage">
+  <input type="text" data-bind="message" />
+</form>
+
+<ul>
+  <li data-foreach-m="messages" data-bind="m" />
+</ul>

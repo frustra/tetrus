@@ -1,0 +1,16 @@
+<ul>
+  <li data-foreach-peer="peers">
+    <a data-bind="peer.username" data-event-click="sendInvite"></a>
+  </li>
+</ul>
+
+<div data-showif="true | or receivedInvites.length">
+  <h2>invites:</h2>
+  <ul>
+    <li data-foreach-inviter="receivedInvites" data-context-invite="receivedInvites[inviter]">
+      <span data-bind="invite.username"></span> :
+      <a data-event-click="acceptInvite">accept</a>,
+      <a data-event-click="rejectInvite">reject</a>
+    </li>
+  </ul>
+</div>

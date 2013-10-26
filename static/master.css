@@ -1,0 +1,102 @@
+/*---------------------------------------------------
+    LESS Elements 0.6
+  ---------------------------------------------------
+    A set of useful LESS mixins by Dmitry Fadeyev
+    Special thanks for mixin suggestions to:
+      Kris Van Herzeele,
+      Benoit Adam,
+      Portenart Emile-Victor,
+      Ryan Faerman
+
+    More info at: http://lesselements.com
+-----------------------------------------------------*/
+.wrapper {
+  width: 768px;
+  margin: 0 auto;
+}
+#landing {
+  text-align: center;
+}
+#username {
+  font-size: 1.2em;
+  width: 20em;
+  padding: 10px;
+  outline: none;
+  border: 5px solid #556;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  margin: 20px 0;
+  color: #223;
+  text-align: center;
+  background: #889;
+  -webkit-transition: background 100ms;
+  -moz-transition: background 100ms;
+  transition: background 100ms;
+}
+#username:focus {
+  background: #aab;
+}
+#submit-username {
+  background: none;
+  outline: none;
+  border: none;
+  font-size: 2.5em;
+  color: #556;
+  position: absolute;
+  margin-top: 15px;
+}
+.masthead {
+  -webkit-transition: margin-top 200ms;
+  -moz-transition: margin-top 200ms;
+  transition: margin-top 200ms;
+  margin-top: 20%;
+}
+.masthead h1 {
+  text-align: center;
+  -webkit-transition: font-size 200ms;
+  -moz-transition: font-size 200ms;
+  transition: font-size 200ms;
+  font-size: 4em;
+  color: #aab;
+}
+#lobby .masthead,
+#game .masthead {
+  margin-top: 10px;
+}
+#lobby .masthead h1,
+#game .masthead h1 {
+  font-size: 2em;
+}
+#flash {
+  position: fixed;
+  width: 100%;
+  height: 50px;
+  line-height: 50px;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+#flash span {
+  position: relative;
+}
+body {
+  font-family: "Lato", "Helvetica", sans-serif;
+  background: #334;
+  color: #889;
+}
+input {
+  font-family: "Lato", "Helvetica", sans-serif;
+}
+.error {
+  color: #a88;
+}
+a {
+  color: #889;
+  text-decoration: underline;
+}

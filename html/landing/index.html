@@ -1,0 +1,16 @@
+<div id="frontpage">
+  <div data-hideif="fatal">
+    enter your username:<br/>
+    <form data-event-submit="continue">
+      <input type="text" id="username" data-bind="username" />
+      <input type="submit" id="submit-username" value="&raquo;" />
+    </form>
+    <div id="username-error" class="error" data-showif="error" data-bind="error" />
+  </div>
+  <div data-showif="fatal">
+    <div class="error" data-bind="fatal"></div>
+    <div class="error">
+      please upgrade to <a href="https://www.google.com/intl/en/chrome/browser/">chrome</a> or <a href="http://www.mozilla.org/en-US/firefox/new/">firefox</a>
+    </div>
+  </div>
+</div>
