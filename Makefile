@@ -19,7 +19,7 @@ minify-css:
 	${lessc} -O3 --yui-compress less/master.less > static/master.css
 
 dev-compile:
-	supervisor --quiet --no-restart-on error --extensions 'coffee|less' --ignore 'static,node_modules' -x make run-dev
+	supervisor --quiet -n exit --extensions 'coffee|less' --ignore 'static,node_modules' -x make run-dev
 
 dev-server:
 	supervisor --no-restart-on error --extensions 'go' --ignore 'static,node_modules' -x make run
@@ -29,4 +29,3 @@ run:
 	./tetrus
 
 run-dev: compile-css compile-js
-	sleep 1000000
