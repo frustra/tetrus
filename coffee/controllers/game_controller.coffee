@@ -1,24 +1,45 @@
 class Tetrus.GameController extends Batman.Controller
   routingKey: 'game'
 
-  _bindPeerChannel: (channel) ->
-    @peerChannel = channel
+  constructor: ->
+    super
+    @set('isServer', @peer.get('isOfferer'))
 
-    channel.onmessage = (event) => @_onMessage(event)
-    channel.onopen = -> console.log("peer channel opened")
-    channel.onclose = -> console.log("peer channel closed")
-    channel.onerror = -> console.log("peer channel errored")
+  play: ->
+    @_negotiate()
 
   _onMessage: (event) ->
     console.log(event)
 
-  sendMessage: (node, event, view) ->
-    @peerChannel?.send(view.get('message'))
-    view.set('message', '')
+    message = JSON.parse(event.data)
+    switch message.type
+      else
+        console.error(message)
+        Tetrus.Flash.error("Communication Error")
 
-  play: ->
+    #@peerChannel?.send(view.get('message'))
+
+  _bindPeerChannel: (channel) ->
+    @peerChannel = channel
+
+    channel.onmessage = (event) => @_onMessage(event)
+
+    channel.onopen = =>
+      Batman.developer.log("peer channel opened")
+      @set('connecting', false)
+      @set('connected', true)
+
+    channel.onclose = =>
+      Batman.developer.log("peer channel closed")
+      @set('connected', false)
+
+    channel.onerror = (error) =>
+      Batman.developer.log("peer channel errored:", error)
+      @set('connected', false)
+
+  _negotiate: ->
     @set('connecting', true)
-    @set('messages', new Batman.Set)
+    @set('connected', false)
 
     @peer = new Tetrus.Peer(Tetrus.get('peer'))
     @peerConnection = new RTCPeerConnection({iceServers: [url: 'stun:stun.l.google.com:19302']}, {optional: [RtpDataChannels: true]})
@@ -31,7 +52,7 @@ class Tetrus.GameController extends Batman.Controller
 
     @peerConnection.ondatachannel = (event) => @_bindPeerChannel(event.channel)
 
-    unless @peer.get('isOfferer')
+    if @isServer
       @_bindPeerChannel(@peerConnection.createDataChannel('RTCDataChannel'))
 
       @peerConnection.createOffer (description) =>
