@@ -222,8 +222,7 @@
       var _this = this;
       this.peerChannel = channel;
       channel.onmessage = function(event) {
-        console.log(event);
-        return _this.get('messages').add(event.data);
+        return _this._onMessage(event);
       };
       channel.onopen = function() {
         return console.log("peer channel opened");
@@ -234,6 +233,10 @@
       return channel.onerror = function() {
         return console.log("peer channel errored");
       };
+    };
+
+    GameController.prototype._onMessage = function(event) {
+      return console.log(event);
     };
 
     GameController.prototype.sendMessage = function(node, event, view) {
@@ -468,6 +471,19 @@
     return LobbyController;
 
   })(Batman.Controller);
+
+  Tetrus.GameView = (function(_super) {
+    __extends(GameView, _super);
+
+    function GameView() {
+      GameView.__super__.constructor.apply(this, arguments);
+    }
+
+    GameView.prototype.render = function() {};
+
+    return GameView;
+
+  })(Batman.View);
 
   Tetrus.LayoutView = (function(_super) {
     __extends(LayoutView, _super);

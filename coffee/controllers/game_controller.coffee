@@ -4,13 +4,13 @@ class Tetrus.GameController extends Batman.Controller
   _bindPeerChannel: (channel) ->
     @peerChannel = channel
 
-    channel.onmessage = (event) =>
-      console.log(event)
-      @get('messages').add(event.data)
-
+    channel.onmessage = (event) => @_onMessage(event)
     channel.onopen = -> console.log("peer channel opened")
     channel.onclose = -> console.log("peer channel closed")
     channel.onerror = -> console.log("peer channel errored")
+
+  _onMessage: (event) ->
+    console.log(event)
 
   sendMessage: (node, event, view) ->
     @peerChannel?.send(view.get('message'))
