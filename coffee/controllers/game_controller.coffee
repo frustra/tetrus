@@ -16,7 +16,7 @@ class Tetrus.GameController extends Batman.Controller
     @peerChannel?.send(view.get('message'))
     view.set('message', '')
 
-  index: ->
+  play: ->
     @set('connecting', true)
     @set('messages', new Batman.Set)
 

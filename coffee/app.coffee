@@ -9,7 +9,7 @@ class window.Tetrus extends Batman.App
 
   @root 'landing#index'
   @route 'lobby', 'lobby#index'
-  @route 'play', 'game#index'
+  @route 'play', 'game#play'
 
   @route '404', 'errors#404'
 

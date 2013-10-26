@@ -25,7 +25,7 @@
 
     Tetrus.route('lobby', 'lobby#index');
 
-    Tetrus.route('play', 'game#index');
+    Tetrus.route('play', 'game#play');
 
     Tetrus.route('404', 'errors#404');
 
@@ -247,7 +247,7 @@
       return view.set('message', '');
     };
 
-    GameController.prototype.index = function() {
+    GameController.prototype.play = function() {
       var _this = this;
       this.set('connecting', true);
       this.set('messages', new Batman.Set);
@@ -472,16 +472,16 @@
 
   })(Batman.Controller);
 
-  Tetrus.GameView = (function(_super) {
-    __extends(GameView, _super);
+  Tetrus.GamePlayView = (function(_super) {
+    __extends(GamePlayView, _super);
 
-    function GameView() {
-      GameView.__super__.constructor.apply(this, arguments);
+    function GamePlayView() {
+      GamePlayView.__super__.constructor.apply(this, arguments);
     }
 
-    GameView.prototype.render = function() {};
+    GamePlayView.prototype.render = function() {};
 
-    return GameView;
+    return GamePlayView;
 
   })(Batman.View);
 
