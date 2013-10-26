@@ -1,11 +1,8 @@
 class Tetrus.GameController extends Batman.Controller
   routingKey: 'game'
 
-  constructor: ->
-    super
-    @set('isServer', @peer.get('isOfferer'))
-
   play: ->
+    @set('isServer', Tetrus.get('peer.isServer'))
     @_negotiate()
 
   _onMessage: (event) ->
@@ -13,11 +10,17 @@ class Tetrus.GameController extends Batman.Controller
 
     message = JSON.parse(event.data)
     switch message.type
+      when "ping"
+        @send(type: 'pong', timeStamp: event.timeStamp)
+      when "pong"
+        @set('lag', event.timeStamp - message.timeStamp)
+        console.log @lag
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")
 
-    #@peerChannel?.send(view.get('message'))
+  send: (message) ->
+    @peerChannel.send(JSON.stringify(message))
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel

@@ -58,7 +58,7 @@ class window.Tetrus extends Batman.App
       onerror: (event) => @fire('socket:error', 'Unexpected Error')
 
   @play: (invite) ->
-    @set('peer', username: invite.get('username'), isOfferer: !!invite.get('isSource'))
+    @set('peer', username: invite.get('username'), isServer: !invite.get('isSource'))
     Batman.redirect('/play')
 
   @attachGlobalErrorHandler: ->
