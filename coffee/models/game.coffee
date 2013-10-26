@@ -43,6 +43,9 @@ class Tetrus.Game
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
     @clearLines()
 
+    ctrl = Tetrus.get('controllers.game')
+    ctrl.send(type: 'board', board: { storage: @board.storage })
+
   clearLines: ->
     for y in [0...@board.height] by 1
       all = @board.width
@@ -55,9 +58,6 @@ class Tetrus.Game
           @board.storage[(x + y2 * @board.width) * 4 + 2] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 2]
           @board.storage[(x + y2 * @board.width) * 4 + 3] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 3]
         @board.storage[(x + y2 * @board.width) * 4 + 3] = 0
-
-    ctrl = Tetrus.get('controllers.game')
-    ctrl.send(type: 'board', board: { storage: @board.storage })
 
   collide: (storage, x, y, width, height) ->
     if x < 0 or y < 0 or x + (width - 1) >= @board.width or y + (height - 1) >= @board.height
