@@ -284,9 +284,9 @@
           _results1 = [];
           for (y = _j = 0, _ref2 = piece.height; _j < _ref2; y = _j += 1) {
             if (piece.storage[(x + y * piece.width) * 4 + 3] > 0) {
-              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4] = piece.storage[(x + y * piece.width) * 4];
-              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 1] = piece.storage[(x + y * piece.width) * 4 + 1];
-              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2];
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4] = 255;
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 1] = 255;
+              this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 2] = 255;
               _results1.push(this.board.storage[(piece.position.x + x + (piece.position.y + y) * this.board.width) * 4 + 3] = 255);
             } else {
               _results1.push(void 0);
@@ -540,7 +540,7 @@
     Player.prototype.setNextPiece = function() {
       this.piece = this.nextPiece;
       this.nextPiece = new Tetrus.Piece();
-      this.piece.position.x = 5 - (this.piece.width / 2);
+      this.piece.position.x = 5 - Math.floor(this.piece.width / 2);
       return this.piece.position.y = 0;
     };
 
