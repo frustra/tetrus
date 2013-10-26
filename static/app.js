@@ -501,7 +501,7 @@
       this.set('fps', 0);
       this.boardWidth = 10;
       this.boardHeight = 20;
-      this.blockSize = 30;
+      this.blockSize = 25;
       this.shaders = {};
       this.board = new Array(this.boardWidth * this.boardHeight * 4);
       for (x = _i = 0, _ref5 = this.boardWidth; _i < _ref5; x = _i += 1) {
@@ -534,24 +534,13 @@
     };
 
     GamePlayView.prototype.viewDidAppear = function() {
-      var canvas, e, gl, resizeCanvas, shaderList,
+      var canvas, e, gl, shaderList,
         _this = this;
       canvas = $("#glcanvas")[0];
-      resizeCanvas = function() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        if (gl) {
-          gl.viewportWidth = canvas.width;
-          gl.viewportHeight = canvas.height;
-          return _this.initBuffers();
-        }
-      };
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
       try {
         this.gl = gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        gl.viewportWidth = canvas.width;
-        gl.viewportHeight = canvas.height;
+        gl.viewportWidth = canvas.width = this.boardWidth * this.blockSize;
+        gl.viewportHeight = canvas.height = this.boardHeight * this.blockSize;
       } catch (_error) {
         e = _error;
         console.log(e);
@@ -615,7 +604,7 @@
         gl.enable(gl.BLEND);
         return (animloop = function() {
           _this.render();
-          return requestAnimFrame(animloop);
+          return requestAnimationFrame(animloop);
         })();
       });
     };

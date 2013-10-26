@@ -4,7 +4,7 @@ class Tetrus.GamePlayView extends Batman.View
     @set('fps', 0)
     @boardWidth = 10
     @boardHeight = 20
-    @blockSize = 30
+    @blockSize = 25
 
     @shaders = {}
     @board = new Array(@boardWidth * @boardHeight * 4)
@@ -40,21 +40,10 @@ class Tetrus.GamePlayView extends Batman.View
   viewDidAppear: ->
     canvas = $("#glcanvas")[0]
 
-    resizeCanvas = =>
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      if gl
-        gl.viewportWidth = canvas.width
-        gl.viewportHeight = canvas.height
-        @initBuffers()
-
-    resizeCanvas()
-    window.addEventListener("resize", resizeCanvas)
-
     try
       @gl = gl = canvas.getContext("webgl") or canvas.getContext("experimental-webgl")
-      gl.viewportWidth = canvas.width
-      gl.viewportHeight = canvas.height
+      gl.viewportWidth = canvas.width = @boardWidth * @blockSize
+      gl.viewportHeight = canvas.height = @boardHeight * @blockSize
     catch e
       console.log(e)
 
@@ -119,7 +108,7 @@ class Tetrus.GamePlayView extends Batman.View
 
       do animloop = =>
         @render()
-        requestAnimFrame(animloop)
+        requestAnimationFrame(animloop)
 
   initBuffers: ->
     return unless @gl and @shaders["board"] and @shaders["players"] and @shaders["effects"]

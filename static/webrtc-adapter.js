@@ -150,3 +150,12 @@ if (navigator.mozGetUserMedia) {
   console.log("Browser does not appear to be WebRTC-capable");
   webrtcCompatible = false;
 }
+
+window.requestAnimationFrame = window.requestAnimationFrame ||
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame ||
+  window.oRequestAnimationFrame ||
+  window.msRequestAnimationFrame ||
+  function(callback) {
+    window.setTimeout(callback, 1000 / 60);
+  };
