@@ -40,9 +40,12 @@ class Tetrus.Game
       pos.x += dx
 
   placePiece: (piece) ->
+    ctrl = Tetrus.get('controllers.game')
+
     if piece.position.y <= 0
       Tetrus.Flash.message("Game Over")
-      Tetrus.get('controllers.game').disconnect()
+      ctrl.send(type: 'gameover')
+      return
 
     for x in [0...piece.width] by 1
       for y in [0...piece.height] by 1
@@ -53,7 +56,6 @@ class Tetrus.Game
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
     @clearLines()
 
-    ctrl = Tetrus.get('controllers.game')
     ctrl.send(type: 'board', board: { storage: @board.storage })
 
   clearLines: ->

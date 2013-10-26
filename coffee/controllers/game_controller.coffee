@@ -50,6 +50,9 @@ class Tetrus.GameController extends Batman.Controller
         @game.speed += message.deltaSpeed
         @game.score += message.deltaScore
         @game.board.removeLine(line) for line in message.lines
+      when "gameover"
+        Tetrus.Flash.message("Game Over")
+        setTimeout(@disconnect, 5000)
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")
