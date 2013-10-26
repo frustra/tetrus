@@ -242,19 +242,19 @@ class Tetrus.GamePlayView extends Batman.View
 
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, @playerOneTexture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.piece.width, @controller.piece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.piece.storage))
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.player.piece.width, @controller.player.piece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.player.piece.storage))
 
     gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, @playerTwoTexture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.peerPiece.width, @controller.peerPiece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.peerPiece.storage))
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.peer.piece.width, @controller.peer.piece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.peer.piece.storage))
 
     gl.useProgram(@shaders["player1"])
-    gl.uniform2f(@shaders["player1"].uPiecePositionUniform, @controller.piece.position.x, @controller.piece.position.y)
-    gl.uniform2f(@shaders["player1"].uPieceSizeUniform, @controller.piece.width, @controller.piece.height)
+    gl.uniform2f(@shaders["player1"].uPiecePositionUniform, @controller.player.piece.position.x, @controller.player.piece.position.y)
+    gl.uniform2f(@shaders["player1"].uPieceSizeUniform, @controller.player.piece.width, @controller.player.piece.height)
 
     gl.useProgram(@shaders["player2"])
-    gl.uniform2f(@shaders["player2"].uPiecePositionUniform, @controller.peerPiece.position.x, @controller.peerPiece.position.y)
-    gl.uniform2f(@shaders["player2"].uPieceSizeUniform, @controller.peerPiece.width, @controller.peerPiece.height)
+    gl.uniform2f(@shaders["player2"].uPiecePositionUniform, @controller.peer.piece.position.x, @controller.peer.piece.position.y)
+    gl.uniform2f(@shaders["player2"].uPieceSizeUniform, @controller.peer.piece.width, @controller.peer.piece.height)
 
   loadShaders: (shaderList, callback) ->
     gl = @gl
