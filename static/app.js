@@ -166,12 +166,14 @@
 
   Tetrus.Board = (function() {
     function Board() {
-      this.storage = new Array(10 * 20 * 4);
+      this.width = 10;
+      this.height = 20;
+      this.storage = new Array(this.width * this.height * 4);
     }
 
     Board.get = function(x, y) {
       var offset;
-      offset = (x + y * 10) * 4;
+      offset = (x + y * this.width) * 4;
       return {
         r: this.storage[offset],
         g: this.storage[offset + 1],
@@ -182,7 +184,7 @@
 
     Board.set = function(x, y, color) {
       var offset;
-      offset = (x + y * 10) * 4;
+      offset = (x + y * this.width) * 4;
       this.storage[offset] = color.r;
       this.storage[offset + 1] = color.g;
       this.storage[offset + 2] = color.b;
@@ -191,10 +193,10 @@
 
     Board.removeLine = function(y) {
       var endIndex, i, _i;
-      endIndex = (y + 1) * 40 - 4;
+      endIndex = (y + 1) * this.width * 4 - 4;
       for (i = _i = endIndex; _i >= 0; i = _i += -1) {
-        if (i >= 40) {
-          this.storage[i] = this.storage[i - 40];
+        if (i >= this.width * 4) {
+          this.storage[i] = this.storage[i - this.width * 4];
         } else {
           this.storage[i] = 0;
         }
@@ -272,6 +274,8 @@
         x: 0,
         y: 0
       };
+      this.width = 0;
+      this.height = 0;
       this.storage = [];
     }
 
@@ -635,8 +639,7 @@
     __extends(GamePlayView, _super);
 
     function GamePlayView() {
-      var x, y, _i, _j, _k, _l, _m, _n, _ref10, _ref5, _ref6, _ref7, _ref8, _ref9,
-        _this = this;
+      var _this = this;
       GamePlayView.__super__.constructor.apply(this, arguments);
       this.set('fps', 0);
       this.fpscounter = 0;
@@ -646,39 +649,6 @@
         return _this.fpscounter = 0;
       }, 1000);
       this.shaders = {};
-      this.boardWidth = 10;
-      this.boardHeight = 20;
-      this.board = new Array(this.boardWidth * this.boardHeight * 4);
-      this.playerOneWidth = 2;
-      this.playerOneHeight = 3;
-      this.playerOne = new Array(this.playerOneWidth * this.playerOneHeight * 4);
-      this.playerTwoWidth = 3;
-      this.playerTwoHeight = 3;
-      this.playerTwo = new Array(this.playerTwoWidth * this.playerTwoHeight * 4);
-      for (x = _i = 0, _ref5 = this.boardWidth; _i < _ref5; x = _i += 1) {
-        for (y = _j = 0, _ref6 = this.boardHeight; _j < _ref6; y = _j += 1) {
-          this.board[(x + y * this.boardWidth) * 4] = 0;
-          this.board[(x + y * this.boardWidth) * 4 + 1] = 0;
-          this.board[(x + y * this.boardWidth) * 4 + 2] = 200;
-          this.board[(x + y * this.boardWidth) * 4 + 3] = (y < 5 ? 255 : 0);
-        }
-      }
-      for (x = _k = 0, _ref7 = this.playerOneWidth; _k < _ref7; x = _k += 1) {
-        for (y = _l = 0, _ref8 = this.playerOneHeight; _l < _ref8; y = _l += 1) {
-          this.playerOne[(x + y * this.playerOneWidth) * 4] = 0;
-          this.playerOne[(x + y * this.playerOneWidth) * 4 + 1] = 200;
-          this.playerOne[(x + y * this.playerOneWidth) * 4 + 2] = 0;
-          this.playerOne[(x + y * this.playerOneWidth) * 4 + 3] = (y === 0 || x === 0 ? 255 : 0);
-        }
-      }
-      for (x = _m = 0, _ref9 = this.playerTwoWidth; _m < _ref9; x = _m += 1) {
-        for (y = _n = 0, _ref10 = this.playerTwoHeight; _n < _ref10; y = _n += 1) {
-          this.playerTwo[(x + y * this.playerTwoWidth) * 4] = 200;
-          this.playerTwo[(x + y * this.playerTwoWidth) * 4 + 1] = 0;
-          this.playerTwo[(x + y * this.playerTwoWidth) * 4 + 2] = 0;
-          this.playerTwo[(x + y * this.playerTwoWidth) * 4 + 3] = (y === 0 ? 200 : 0);
-        }
-      }
     }
 
     GamePlayView.prototype.render = function() {
@@ -710,8 +680,8 @@
       canvas = $("#glcanvas")[0];
       try {
         this.gl = gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        gl.viewportWidth = canvas.width = this.boardWidth * this.blockSize;
-        gl.viewportHeight = canvas.height = this.boardHeight * this.blockSize;
+        gl.viewportWidth = canvas.width = this.controller.board.width * this.blockSize;
+        gl.viewportHeight = canvas.height = this.controller.board.height * this.blockSize;
       } catch (_error) {
         e = _error;
         console.log(e);
@@ -859,13 +829,13 @@
       gl.uniformMatrix4fv(this.shaders["board"].pMatrixUniform, false, pMatrix);
       gl.vertexAttribPointer(this.shaders["board"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
       gl.uniform1i(this.shaders["board"].uBoardUniform, 0);
-      gl.uniform2f(this.shaders["board"].uBoardSizeUniform, this.boardWidth, this.boardHeight);
+      gl.uniform2f(this.shaders["board"].uBoardSizeUniform, this.controller.board.width, this.controller.board.height);
       gl.uniform1f(this.shaders["board"].uBlockSizeUniform, this.blockSize);
       gl.useProgram(this.shaders["player1"]);
       gl.uniformMatrix4fv(this.shaders["player1"].pMatrixUniform, false, pMatrix);
       gl.vertexAttribPointer(this.shaders["player1"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
       gl.uniform1i(this.shaders["player1"].uPieceUniform, 1);
-      gl.uniform2f(this.shaders["player1"].uBoardSizeUniform, this.boardWidth, this.boardHeight);
+      gl.uniform2f(this.shaders["player1"].uBoardSizeUniform, this.controller.board.width, this.controller.board.height);
       gl.uniform1f(this.shaders["player1"].uBlockSizeUniform, this.blockSize);
       gl.uniform1i(this.shaders["player1"].uBufferUniform, 3);
       gl.uniform2f(this.shaders["player1"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
@@ -873,7 +843,7 @@
       gl.uniformMatrix4fv(this.shaders["player2"].pMatrixUniform, false, pMatrix);
       gl.vertexAttribPointer(this.shaders["player2"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
       gl.uniform1i(this.shaders["player2"].uPieceUniform, 2);
-      gl.uniform2f(this.shaders["player2"].uBoardSizeUniform, this.boardWidth, this.boardHeight);
+      gl.uniform2f(this.shaders["player2"].uBoardSizeUniform, this.controller.board.width, this.controller.board.height);
       gl.uniform1f(this.shaders["player2"].uBlockSizeUniform, this.blockSize);
       gl.uniform1i(this.shaders["player2"].uBufferUniform, 4);
       gl.uniform2f(this.shaders["player2"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
@@ -890,19 +860,19 @@
       gl = this.gl;
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.boardTexture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.boardWidth, this.boardHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.board));
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.controller.board.width, this.controller.board.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.controller.board.storage));
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, this.playerOneTexture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.playerOneWidth, this.playerOneHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.playerOne));
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.controller.piece.width, this.controller.piece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.controller.piece.storage));
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, this.playerTwoTexture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.playerTwoWidth, this.playerTwoHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.playerTwo));
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.controller.peerPiece.width, this.controller.peerPiece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.controller.peerPiece.storage));
       gl.useProgram(this.shaders["player1"]);
-      gl.uniform2f(this.shaders["player1"].uPiecePositionUniform, 0, 0);
-      gl.uniform2f(this.shaders["player1"].uPieceSizeUniform, this.playerOneWidth, this.playerOneHeight);
+      gl.uniform2f(this.shaders["player1"].uPiecePositionUniform, this.controller.piece.position.x, this.controller.piece.position.y);
+      gl.uniform2f(this.shaders["player1"].uPieceSizeUniform, this.controller.piece.width, this.controller.piece.height);
       gl.useProgram(this.shaders["player2"]);
-      gl.uniform2f(this.shaders["player2"].uPiecePositionUniform, 4, 4);
-      return gl.uniform2f(this.shaders["player2"].uPieceSizeUniform, this.playerTwoWidth, this.playerTwoHeight);
+      gl.uniform2f(this.shaders["player2"].uPiecePositionUniform, this.controller.peerPiece.position.x, this.controller.peerPiece.position.y);
+      return gl.uniform2f(this.shaders["player2"].uPieceSizeUniform, this.controller.peerPiece.width, this.controller.peerPiece.height);
     };
 
     GamePlayView.prototype.loadShaders = function(shaderList, callback) {
