@@ -55,18 +55,41 @@ class Tetrus.Piece
           @storage[(x + y * @width) * 4 + 3] = (if pieces[piecenum][y][x] then (if peer then 100 else 255) else 0)
 
   rotate: (times) ->
+    newstorage = (x for x in @storage)
+    newwidth = @width
+    newheight = @height
     for i in [0...times] by 1
-      newstorage = new Array(@storage.length)
-      for x in [0...@width] by 1
-        for y in [0...@height] by 1
-          newstorage[(@height - y - 1 + x * @width) * 4] = @storage[(x + y * @width) * 4]
-          newstorage[(@height - y - 1 + x * @width) * 4 + 1] = @storage[(x + y * @width) * 4 + 1]
-          newstorage[(@height - y - 1 + x * @width) * 4 + 2] = @storage[(x + y * @width) * 4 + 2]
-          newstorage[(@height - y - 1 + x * @width) * 4 + 3] = @storage[(x + y * @width) * 4 + 3]
+      tmpstorage = new Array(newstorage.length)
+      for x in [0...newwidth] by 1
+        for y in [0...newheight] by 1
+          tmpstorage[(newheight - y - 1 + x * newwidth) * 4] = newstorage[(x + y * newwidth) * 4]
+          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1]
+          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2]
+          tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3]
+      newstorage = (x for x in tmpstorage)
+      tmp = newwidth
+      newwidth = newheight
+      newheight = tmp
+
+    deltaX = Math.floor(@width / 2 - newwidth / 2)
+    deltaY = Math.floor(@height / 2 - newheight / 2)
+
+    collide = Tetrus.get('controllers.game').game.collide
+
+    unless collide(newstorage, @position.x + deltaX, @position.y + deltaY)
       @storage = newstorage
-      tmp = @width
-      @width = @height
-      @height = tmp
+      @position.x += deltaX
+      @position.y += deltaY
+    else
+      radius = 2
+      for dy in [-radius..radius] by 1
+        for dx in [-radius..radius] by 1
+          continue if dx == 0 && dy == 0
+          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy)
+            @storage = newstorage
+            @position.x += deltaX + dx
+            @position.y += deltaY + dy
+            return
 
   apply: (piece) ->
     @storage = piece.storage
