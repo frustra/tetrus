@@ -476,10 +476,247 @@
     __extends(GamePlayView, _super);
 
     function GamePlayView() {
+      var x, y, _i, _j, _ref5, _ref6;
       GamePlayView.__super__.constructor.apply(this, arguments);
+      this.set('fps', 0);
+      this.boardWidth = 10;
+      this.boardHeight = 20;
+      this.blockSize = 30;
+      this.shaders = {};
+      this.board = new Array(this.boardWidth * this.boardHeight * 4);
+      for (x = _i = 0, _ref5 = this.boardWidth; _i < _ref5; x = _i += 1) {
+        for (y = _j = 0, _ref6 = this.boardHeight; _j < _ref6; y = _j += 1) {
+          this.board[(x + y * this.boardWidth) * 4] = 0;
+          this.board[(x + y * this.boardWidth) * 4 + 1] = 0;
+          this.board[(x + y * this.boardWidth) * 4 + 2] = 200;
+          this.board[(x + y * this.boardWidth) * 4 + 3] = (Math.random() > 0.5 ? 255 : 0);
+        }
+      }
     }
 
-    GamePlayView.prototype.render = function() {};
+    GamePlayView.prototype.render = function() {
+      var gl;
+      gl = this.gl;
+      this.updateBoard();
+      gl.useProgram(this.shaders["board"]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.useProgram(this.shaders["players"]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo2);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.useProgram(this.shaders["effects"]);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      return this.set('fps', this.fps + 1);
+    };
+
+    GamePlayView.prototype.viewDidAppear = function() {
+      var canvas, e, gl, resizeCanvas, shaderList,
+        _this = this;
+      canvas = $("#glcanvas")[0];
+      resizeCanvas = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        if (gl) {
+          gl.viewportWidth = canvas.width;
+          gl.viewportHeight = canvas.height;
+          return _this.initBuffers();
+        }
+      };
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      try {
+        this.gl = gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+      } catch (_error) {
+        e = _error;
+        console.log(e);
+      }
+      if (!gl) {
+        console.log("Could not initialize WebGL!");
+      }
+      shaderList = {
+        vertex: {
+          url: "shaders/vertex.vert"
+        },
+        board: {
+          url: "shaders/board.frag"
+        },
+        players: {
+          url: "shaders/players.frag"
+        },
+        effects: {
+          url: "shaders/effects.frag"
+        }
+      };
+      return this.loadShaders(shaderList, function() {
+        var animloop, name;
+        _this.shaders["board"] = gl.createProgram();
+        gl.attachShader(_this.shaders["board"], shaderList["vertex"].shader);
+        gl.attachShader(_this.shaders["board"], shaderList["board"].shader);
+        gl.linkProgram(_this.shaders["board"]);
+        _this.shaders["players"] = gl.createProgram();
+        gl.attachShader(_this.shaders["players"], shaderList["vertex"].shader);
+        gl.attachShader(_this.shaders["players"], shaderList["players"].shader);
+        gl.linkProgram(_this.shaders["players"]);
+        _this.shaders["effects"] = gl.createProgram();
+        gl.attachShader(_this.shaders["effects"], shaderList["vertex"].shader);
+        gl.attachShader(_this.shaders["effects"], shaderList["effects"].shader);
+        gl.linkProgram(_this.shaders["effects"]);
+        for (name in _this.shaders) {
+          if (!gl.getProgramParameter(_this.shaders[name], gl.LINK_STATUS)) {
+            console.log("Could not initialize shader: " + name);
+            return;
+          }
+        }
+        _this.shaders["board"].vertexPositionAttribute = gl.getAttribLocation(_this.shaders["board"], "aVertexPosition");
+        _this.shaders["board"].pMatrixUniform = gl.getUniformLocation(_this.shaders["board"], "uPMatrix");
+        _this.shaders["board"].uBoardUniform = gl.getUniformLocation(_this.shaders["board"], "u_board");
+        _this.shaders["board"].uBoardSizeUniform = gl.getUniformLocation(_this.shaders["board"], "u_boardsize");
+        _this.shaders["board"].uBlockSizeUniform = gl.getUniformLocation(_this.shaders["board"], "u_blocksize");
+        _this.shaders["players"].vertexPositionAttribute = gl.getAttribLocation(_this.shaders["players"], "aVertexPosition");
+        _this.shaders["players"].pMatrixUniform = gl.getUniformLocation(_this.shaders["players"], "uPMatrix");
+        _this.shaders["players"].uBufferUniform = gl.getUniformLocation(_this.shaders["players"], "u_buffer");
+        _this.shaders["players"].uSizeUniform = gl.getUniformLocation(_this.shaders["players"], "u_size");
+        _this.shaders["effects"].vertexPositionAttribute = gl.getAttribLocation(_this.shaders["effects"], "aVertexPosition");
+        _this.shaders["effects"].pMatrixUniform = gl.getUniformLocation(_this.shaders["effects"], "uPMatrix");
+        _this.shaders["effects"].uBufferUniform = gl.getUniformLocation(_this.shaders["effects"], "u_buffer");
+        _this.shaders["effects"].uSizeUniform = gl.getUniformLocation(_this.shaders["effects"], "u_size");
+        gl.enableVertexAttribArray(_this.shaders["board"].vertexPositionAttribute);
+        gl.enableVertexAttribArray(_this.shaders["players"].vertexPositionAttribute);
+        gl.enableVertexAttribArray(_this.shaders["effects"].vertexPositionAttribute);
+        _this.initBuffers();
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        return (animloop = function() {
+          _this.render();
+          return requestAnimFrame(animloop);
+        })();
+      });
+    };
+
+    GamePlayView.prototype.initBuffers = function() {
+      var fboTexture1, fboTexture2, gl, pMatrix, vertexPositionBuffer, vertices;
+      if (!(this.gl && this.shaders["board"] && this.shaders["players"] && this.shaders["effects"])) {
+        return;
+      }
+      gl = this.gl;
+      vertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+      vertices = [gl.viewportWidth, gl.viewportHeight, 0.0, gl.viewportHeight, gl.viewportWidth, 0.0, 0.0, 0.0];
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+      this.boardTexture = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.boardTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      this.updateBoard();
+      fboTexture1 = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, fboTexture1);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.viewportWidth, gl.viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      this.fbo1 = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo1);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTexture1, 0);
+      fboTexture2 = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, fboTexture2);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.viewportWidth, gl.viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      this.fbo2 = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo2);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTexture2, 0);
+      pMatrix = mat4.ortho(0, gl.viewportWidth, gl.viewportHeight, 0, 0.001, 100000);
+      gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+      gl.useProgram(this.shaders["board"]);
+      gl.uniformMatrix4fv(this.shaders["board"].pMatrixUniform, false, pMatrix);
+      gl.vertexAttribPointer(this.shaders["board"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform1i(this.shaders["board"].uBoardUniform, 0);
+      gl.uniform2f(this.shaders["board"].uBoardSizeUniform, this.boardWidth, this.boardHeight);
+      gl.uniform1f(this.shaders["board"].uBlockSizeUniform, this.blockSize);
+      gl.useProgram(this.shaders["players"]);
+      gl.uniformMatrix4fv(this.shaders["players"].pMatrixUniform, false, pMatrix);
+      gl.vertexAttribPointer(this.shaders["players"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform1i(this.shaders["players"].uBufferUniform, 1);
+      gl.uniform2f(this.shaders["players"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
+      gl.useProgram(this.shaders["effects"]);
+      gl.uniformMatrix4fv(this.shaders["effects"].pMatrixUniform, false, pMatrix);
+      gl.vertexAttribPointer(this.shaders["effects"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform1i(this.shaders["effects"].uBufferUniform, 2);
+      return gl.uniform2f(this.shaders["effects"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
+    };
+
+    GamePlayView.prototype.updateBoard = function() {
+      var gl;
+      gl = this.gl;
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.boardTexture);
+      return gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.boardWidth, this.boardHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(this.board));
+    };
+
+    GamePlayView.prototype.loadShaders = function(shaderList, callback) {
+      var completeCallback, gl, name, _results;
+      gl = this.gl;
+      completeCallback = function(name, source) {
+        var complete, ext;
+        ext = shaderList[name].url.substr(shaderList[name].url.length - 5);
+        if (ext === ".frag") {
+          shaderList[name].shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (ext === ".vert") {
+          shaderList[name].shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+          shaderList[name].shader = false;
+          return;
+        }
+        gl.shaderSource(shaderList[name].shader, source);
+        gl.compileShader(shaderList[name].shader);
+        if (!gl.getShaderParameter(shaderList[name].shader, gl.COMPILE_STATUS)) {
+          console.log("Error in shader: " + name);
+          console.log(gl.getShaderInfoLog(shaderList[name].shader));
+          shaderList[name].shader = false;
+          return;
+        }
+        complete = true;
+        for (name in shaderList) {
+          if (!shaderList[name].shader) {
+            complete = false;
+            break;
+          }
+        }
+        if (complete) {
+          return callback();
+        }
+      };
+      _results = [];
+      for (name in shaderList) {
+        _results.push((function(name) {
+          var options;
+          options = {
+            url: shaderList[name].url,
+            success: function(data) {
+              return completeCallback(name, data);
+            }
+          };
+          return new Batman.Request(options).send();
+        })(name));
+      }
+      return _results;
+    };
 
     return GamePlayView;
 
