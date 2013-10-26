@@ -82,14 +82,29 @@ class Tetrus.Piece
       @position.y += deltaY
     else
       radius = 2
-      for dy in [-radius..radius] by 1
-        for dx in [-radius..radius] by 1
-          continue if dx == 0 && dy == 0
-          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy)
+      for dy in [-radius..0] by -1
+        for dx in [1..radius] by 1
+          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy)
             @storage = newstorage
             @position.x += deltaX + dx
-            @position.y += deltaY + dy
+            @position.y += deltaY - dy
             return
+          unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY - dy)
+            @storage = newstorage
+            @position.x += deltaX - dx
+            @position.y += deltaY - dy
+            return
+          unless dy == 0
+            unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy)
+              @storage = newstorage
+              @position.x += deltaX + dx
+              @position.y += deltaY + dy
+              return
+            unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY + dy)
+              @storage = newstorage
+              @position.x += deltaX - dx
+              @position.y += deltaY + dy
+              return
 
   apply: (piece) ->
     @storage = piece.storage
