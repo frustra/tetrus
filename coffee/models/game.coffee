@@ -39,9 +39,10 @@ class Tetrus.Game
       pos.x += dx
 
   placePiece: (piece) ->
-    if piece.position.y < 0
+    if piece.position.y <= 0
       Tetrus.Flash.message("Game Over")
       Tetrus.get('controllers.game').disconnect()
+
     for x in [0...piece.width] by 1
       for y in [0...piece.height] by 1
         if piece.storage[(x + y * piece.width) * 4 + 3] > 0
