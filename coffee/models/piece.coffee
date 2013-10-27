@@ -43,67 +43,70 @@ class Tetrus.Piece
     @width = 0
     @height = 0
     unless @storage
-      piecenum = Math.floor(Math.random() * 7)
-      @width = pieces[piecenum][0].length
-      @height = pieces[piecenum].length
+      index = Math.floor(Math.random() * 7)
+      piece = pieces[index]
+      @height = piece.length
+      @width = piece[0].length
+
+      alpha = (if peer then 200 else 255)
+
       @storage = new Array(@width * @height * 4)
       for x in [0...@width] by 1
         for y in [0...@height] by 1
-          @storage[(x + y * @width) * 4] = colors[piecenum].r
-          @storage[(x + y * @width) * 4 + 1] = colors[piecenum].g
-          @storage[(x + y * @width) * 4 + 2] = colors[piecenum].b
-          @storage[(x + y * @width) * 4 + 3] = (if pieces[piecenum][y][x] then (if peer then 200 else 255) else 0)
+          offset = (x + y * @width) * 4
+          {r, g, b} = colors[index]
+          @storage[offset] = r
+          @storage[offset + 1] = g
+          @storage[offset + 2] = b
+          @storage[offset + 3] = (if piece[y][x] then alpha else 0)
 
   rotate: (times) ->
-    newstorage = (x for x in @storage)
-    newwidth = @width
-    newheight = @height
+    storage = (x for x in @storage)
+    width = @width
+    height = @height
     for i in [0...times] by 1
-      tmpstorage = new Array(newstorage.length)
-      for x in [0...newwidth] by 1
-        for y in [0...newheight] by 1
-          tmpstorage[(newheight - y - 1 + x * newheight) * 4] = newstorage[(x + y * newwidth) * 4]
-          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1]
-          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2]
-          tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3]
-      newstorage = (x for x in tmpstorage)
-      tmp = newwidth
-      newwidth = newheight
-      newheight = tmp
+      targetStorage = new Array(storage.length)
+      for x in [0...width] by 1
+        for y in [0...height] by 1
+          sourceOffset = (x + y * width) * 4
+          targetOffset = (height - y - 1 + x * height) * 4
+          targetStorage[targetOffset] = storage[sourceOffset]
+          targetStorage[targetOffset + 1] = storage[sourceOffset + 1]
+          targetStorage[targetOffset + 2] = storage[sourceOffset + 2]
+          targetStorage[targetOffset + 3] = storage[sourceOffset + 3]
 
-    deltaX = @width - newwidth
-    deltaY = 0 # Math.floor(newheight / 2 - @height / 2)
+      storage = (x for x in targetStorage)
+      tmp = width
+      width = height
+      height = tmp
 
-    collide = -> Tetrus.get('controllers.game').game.collide(arguments...)
+    deltaX = @width - width
+    deltaY = 0 # Math.floor(height / 2 - @height / 2)
 
-    unless collide(newstorage, @position.x + deltaX, @position.y + deltaY, newwidth, newheight)
-      @storage = newstorage
-      @width = newwidth
-      @height = newheight
-      @position.x += deltaX
-      @position.y += deltaY
+    game = Tetrus.get('controllers.game').game
+
+    setStorage = (dx, dy) =>
+      @storage = storage
+      @width = width
+      @height = height
+      @position.x += deltaX + dx
+      @position.y += deltaY + dy
+
+    unless game.collide(storage, @position.x + deltaX, @position.y + deltaY, width, height)
+      setStorage(0, 0)
     else
       radius = 2
       for dy in [0..radius] by 1
         for dx in [0..radius] by 1
           continue if dx == 0 and dy == 0
-
-          setStorage = (dx, dy) ->
-            @storage = newstorage
-            @width = newwidth
-            @height = newheight
-            @position.x += deltaX + dx
-            @position.y += deltaY + dy
-            return
-
-          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
+          unless game.collide(storage, @position.x + deltaX + dx, @position.y + deltaY - dy, width, height)
             return setStorage(dx, -dy)
-          unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY - dy, newwidth, newheight)
+          unless game.collide(storage, @position.x + deltaX - dx, @position.y + deltaY - dy, width, height)
             return setStorage(-dx, -dy)
           unless dy == 0
-            unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy, newwidth, newheight)
+            unless game.collide(storage, @position.x + deltaX + dx, @position.y + deltaY + dy, width, height)
               return setStorage(dx, dy)
-            unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY + dy, newwidth, newheight)
+            unless game.collide(storage, @position.x + deltaX - dx, @position.y + deltaY + dy, width, height)
               return setStorage(-dx, dy)
 
   apply: (piece) ->
@@ -111,3 +114,4 @@ class Tetrus.Piece
     @position = piece.position
     @width = piece.width
     @height = piece.height
+
