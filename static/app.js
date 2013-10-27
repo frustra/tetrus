@@ -307,10 +307,7 @@
 
     GameController.prototype.start = function() {
       this.pollForTimeout();
-      this.game = new Tetrus.Game;
-      return this.send({
-        type: 'ping'
-      });
+      return this.game = new Tetrus.Game;
     };
 
     GameController.prototype.disconnect = function() {
@@ -377,6 +374,9 @@
           return _this.disconnect();
         } else {
           lastCheck = new Date().getTime();
+          _this.send({
+            type: 'ping'
+          });
           return setTimeout(check, 2000);
         }
       };

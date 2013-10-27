@@ -9,7 +9,6 @@ class Tetrus.GameController extends Batman.Controller
   start: ->
     @pollForTimeout()
     @game = new Tetrus.Game
-    @send(type: 'ping')
 
   disconnect: ->
     @set('connecting', false)
@@ -57,6 +56,7 @@ class Tetrus.GameController extends Batman.Controller
         @disconnect()
       else
         lastCheck = new Date().getTime()
+        @send(type: 'ping')
         setTimeout check, 2000
 
     check()
