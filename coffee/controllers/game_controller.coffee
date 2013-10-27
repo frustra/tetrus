@@ -10,19 +10,30 @@ class Tetrus.GameController extends Batman.Controller
     @pollForTimeout()
     @game = new Tetrus.Game
 
+    @keys = {}
+    Batman.DOM.addEventListener(document, 'keydown', @keydown)
+    Batman.DOM.addEventListener(document, 'keyup', @keydown)
+
   disconnect: ->
     @set('connecting', false)
     @set('connected', false)
     delete @peerChannel
     delete @peerConnection
-    Tetrus.conn.sendJSON(command: 'game:end')
 
+    Batman.DOM.removeEventListener(document, 'keydown', @keydown)
+    Batman.DOM.removeEventListener(document, 'keyup', @keydown)
+
+    if @_onMessage
+      Tetrus.off 'socket:message', @_onMessage
+      delete @_onMessage
+
+    Tetrus.conn.sendJSON(command: 'game:end')
     Batman.redirect('/lobby')
 
   _onMessage: (event) ->
     @lastResponse = new Date().getTime()
     message = JSON.parse(event.data)
-    console.log(message)
+    #console.log(message)
 
     switch message.type
       when "ping"
@@ -60,6 +71,22 @@ class Tetrus.GameController extends Batman.Controller
         setTimeout check, 2000
 
     check()
+
+  _setKey: (keyCode, pressed) ->
+    switch event.keyCode
+      when 37
+        @keys.left = pressed
+      when 38
+        @keys.up = pressed
+      when 39
+        @keys.right = pressed
+      when 40
+        @keys.down = pressed
+      when 32
+        @keys.space = pressed
+
+  keydown: (event) => @_setKey(event.keyCode, true)
+  keyup: (event) => @_setKey(event.keyCode, false)
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel
@@ -103,7 +130,7 @@ class Tetrus.GameController extends Batman.Controller
         Tetrus.conn.sendJSON(command: 'peer:offer', description: description, username: @peer.get('username'))
       , null, null
 
-    Tetrus.on 'socket:message', (message) =>
+    Tetrus.on 'socket:message', @_onMessage = (message) =>
       setRemoteDescription = =>
         description = new RTCSessionDescription(message.description)
         @peerConnection.setRemoteDescription(description)
@@ -137,3 +164,4 @@ class Tetrus.GameController extends Batman.Controller
 
         when "game:ended"
           @disconnect()
+

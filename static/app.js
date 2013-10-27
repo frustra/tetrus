@@ -2,7 +2,8 @@
 (function() {
   var _ref, _ref1, _ref2, _ref3, _ref4,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Batman.extend(Batman.config, {
     pathToApp: '/',
@@ -297,6 +298,8 @@
     __extends(GameController, _super);
 
     function GameController() {
+      this.keyup = __bind(this.keyup, this);
+      this.keydown = __bind(this.keydown, this);
       _ref2 = GameController.__super__.constructor.apply(this, arguments);
       return _ref2;
     }
@@ -311,7 +314,10 @@
 
     GameController.prototype.start = function() {
       this.pollForTimeout();
-      return this.game = new Tetrus.Game;
+      this.game = new Tetrus.Game;
+      this.keys = {};
+      Batman.DOM.addEventListener(document, 'keydown', this.keydown);
+      return Batman.DOM.addEventListener(document, 'keyup', this.keydown);
     };
 
     GameController.prototype.disconnect = function() {
@@ -319,6 +325,12 @@
       this.set('connected', false);
       delete this.peerChannel;
       delete this.peerConnection;
+      Batman.DOM.removeEventListener(document, 'keydown', this.keydown);
+      Batman.DOM.removeEventListener(document, 'keyup', this.keydown);
+      if (this._onMessage) {
+        Tetrus.off('socket:message', this._onMessage);
+        delete this._onMessage;
+      }
       Tetrus.conn.sendJSON({
         command: 'game:end'
       });
@@ -329,7 +341,6 @@
       var line, message, _i, _len, _ref3, _results;
       this.lastResponse = new Date().getTime();
       message = JSON.parse(event.data);
-      console.log(message);
       switch (message.type) {
         case "ping":
           return this.send({
@@ -385,6 +396,29 @@
         }
       };
       return check();
+    };
+
+    GameController.prototype._setKey = function(keyCode, pressed) {
+      switch (event.keyCode) {
+        case 37:
+          return this.keys.left = pressed;
+        case 38:
+          return this.keys.up = pressed;
+        case 39:
+          return this.keys.right = pressed;
+        case 40:
+          return this.keys.down = pressed;
+        case 32:
+          return this.keys.space = pressed;
+      }
+    };
+
+    GameController.prototype.keydown = function(event) {
+      return this._setKey(event.keyCode, true);
+    };
+
+    GameController.prototype.keyup = function(event) {
+      return this._setKey(event.keyCode, false);
     };
 
     GameController.prototype._bindPeerChannel = function(channel) {
@@ -450,7 +484,7 @@
           });
         }, null, null);
       }
-      return Tetrus.on('socket:message', function(message) {
+      return Tetrus.on('socket:message', this._onMessage = function(message) {
         var candidate, setRemoteDescription, _i, _len;
         setRemoteDescription = function() {
           var description;
