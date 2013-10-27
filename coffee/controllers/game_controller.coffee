@@ -2,25 +2,55 @@ class Tetrus.GameController extends Batman.Controller
   routingKey: 'game'
 
   play: ->
-    @set('isServer', Tetrus.get('peer.isServer'))
+    @peer = new Tetrus.Peer(Tetrus.get('peer'))
+    @set('isServer', @peer.get('isServer'))
     @_negotiate()
 
-  _onMessage: (event) ->
-    console.log(event)
+  start: ->
+    @pollForTimeout()
+    @send(type: 'ping')
 
+  disconnect: ->
+    @set('connecting', false)
+    @set('connected', false)
+    delete @peerChannel
+    delete @peerConnection
+    Tetrus.conn.sendJSON(command: 'game:end')
+
+    Batman.redirect('/lobby')
+
+  _onMessage: (event) ->
+    @lastResponse = new Date().getTime()
     message = JSON.parse(event.data)
+    console.log(message)
+
     switch message.type
       when "ping"
         @send(type: 'pong', timeStamp: event.timeStamp)
       when "pong"
-        @set('lag', event.timeStamp - message.timeStamp)
-        console.log @lag
+        @set('rtt', event.timeStamp - message.timeStamp)
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")
+        @disconnect()
 
   send: (message) ->
     @peerChannel.send(JSON.stringify(message))
+
+  pollForTimeout: ->
+    lastCheck = 0
+    @lastResponse = new Date().getTime()
+
+    check = =>
+      return unless @connected
+      if @lastResponse < lastCheck
+        Tetrus.Flash.error("Connection timed out")
+        @disconnect()
+      else
+        lastCheck = new Date().getTime()
+        setTimeout check, 2000
+
+    check()
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel
@@ -31,27 +61,27 @@ class Tetrus.GameController extends Batman.Controller
       Batman.developer.log("peer channel opened")
       @set('connecting', false)
       @set('connected', true)
+      @start()
 
     channel.onclose = =>
       Batman.developer.log("peer channel closed")
-      @set('connected', false)
+      @disconnect()
 
     channel.onerror = (error) =>
       Batman.developer.log("peer channel errored:", error)
-      @set('connected', false)
+      @disconnect()
 
   _negotiate: ->
     @set('connecting', true)
     @set('connected', false)
 
-    @peer = new Tetrus.Peer(Tetrus.get('peer'))
     @peerConnection = new RTCPeerConnection({iceServers: [url: 'stun:stun.l.google.com:19302']}, {optional: [RtpDataChannels: true]})
-    @candidates = []
+    candidates = []
 
     @peerConnection.onicecandidate = (event) =>
       if candidate = event.candidate
         Batman.developer.log("local candidate", candidate.candidate)
-        @candidates.push(candidate)
+        candidates.push(candidate)
 
     @peerConnection.ondatachannel = (event) => @_bindPeerChannel(event.channel)
 
@@ -85,14 +115,16 @@ class Tetrus.GameController extends Batman.Controller
           Tetrus.conn.sendJSON(command: 'peer:handshake')
 
         when "peer:handshake:complete"
-          @candidates.push = (candidate) ->
+          candidates.push = (candidate) ->
             Tetrus.conn.sendJSON(command: 'peer:candidate', candidate: candidate)
 
-          @candidates.push(candidate) for candidate in @candidates
-          @candidates.length = 0
+          candidates.push(candidate) for candidate in candidates
+          candidates.length = 0
 
         when "peer:candidate"
           candidate = new RTCIceCandidate(message.candidate)
           @peerConnection.addIceCandidate(candidate)
           Batman.developer.log("remote candidate", candidate.candidate)
 
+        when "game:ended"
+          @disconnect()

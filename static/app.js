@@ -219,14 +219,34 @@
     GameController.prototype.routingKey = 'game';
 
     GameController.prototype.play = function() {
-      this.set('isServer', Tetrus.get('peer.isServer'));
+      this.peer = new Tetrus.Peer(Tetrus.get('peer'));
+      this.set('isServer', this.peer.get('isServer'));
       return this._negotiate();
+    };
+
+    GameController.prototype.start = function() {
+      this.pollForTimeout();
+      return this.send({
+        type: 'ping'
+      });
+    };
+
+    GameController.prototype.disconnect = function() {
+      this.set('connecting', false);
+      this.set('connected', false);
+      delete this.peerChannel;
+      delete this.peerConnection;
+      Tetrus.conn.sendJSON({
+        command: 'game:end'
+      });
+      return Batman.redirect('/lobby');
     };
 
     GameController.prototype._onMessage = function(event) {
       var message;
-      console.log(event);
+      this.lastResponse = new Date().getTime();
       message = JSON.parse(event.data);
+      console.log(message);
       switch (message.type) {
         case "ping":
           return this.send({
@@ -234,16 +254,36 @@
             timeStamp: event.timeStamp
           });
         case "pong":
-          this.set('lag', event.timeStamp - message.timeStamp);
-          return console.log(this.lag);
+          return this.set('rtt', event.timeStamp - message.timeStamp);
         default:
           console.error(message);
-          return Tetrus.Flash.error("Communication Error");
+          Tetrus.Flash.error("Communication Error");
+          return this.disconnect();
       }
     };
 
     GameController.prototype.send = function(message) {
       return this.peerChannel.send(JSON.stringify(message));
+    };
+
+    GameController.prototype.pollForTimeout = function() {
+      var check, lastCheck,
+        _this = this;
+      lastCheck = 0;
+      this.lastResponse = new Date().getTime();
+      check = function() {
+        if (!_this.connected) {
+          return;
+        }
+        if (_this.lastResponse < lastCheck) {
+          Tetrus.Flash.error("Connection timed out");
+          return _this.disconnect();
+        } else {
+          lastCheck = new Date().getTime();
+          return setTimeout(check, 2000);
+        }
+      };
+      return check();
     };
 
     GameController.prototype._bindPeerChannel = function(channel) {
@@ -255,23 +295,24 @@
       channel.onopen = function() {
         Batman.developer.log("peer channel opened");
         _this.set('connecting', false);
-        return _this.set('connected', true);
+        _this.set('connected', true);
+        return _this.start();
       };
       channel.onclose = function() {
         Batman.developer.log("peer channel closed");
-        return _this.set('connected', false);
+        return _this.disconnect();
       };
       return channel.onerror = function(error) {
         Batman.developer.log("peer channel errored:", error);
-        return _this.set('connected', false);
+        return _this.disconnect();
       };
     };
 
     GameController.prototype._negotiate = function() {
-      var _this = this;
+      var candidates,
+        _this = this;
       this.set('connecting', true);
       this.set('connected', false);
-      this.peer = new Tetrus.Peer(Tetrus.get('peer'));
       this.peerConnection = new RTCPeerConnection({
         iceServers: [
           {
@@ -285,12 +326,12 @@
           }
         ]
       });
-      this.candidates = [];
+      candidates = [];
       this.peerConnection.onicecandidate = function(event) {
         var candidate;
         if (candidate = event.candidate) {
           Batman.developer.log("local candidate", candidate.candidate);
-          return _this.candidates.push(candidate);
+          return candidates.push(candidate);
         }
       };
       this.peerConnection.ondatachannel = function(event) {
@@ -309,7 +350,7 @@
         }, null, null);
       }
       return Tetrus.on('socket:message', function(message) {
-        var candidate, setRemoteDescription, _i, _len, _ref3;
+        var candidate, setRemoteDescription, _i, _len;
         setRemoteDescription = function() {
           var description;
           description = new RTCSessionDescription(message.description);
@@ -333,22 +374,23 @@
               command: 'peer:handshake'
             });
           case "peer:handshake:complete":
-            _this.candidates.push = function(candidate) {
+            candidates.push = function(candidate) {
               return Tetrus.conn.sendJSON({
                 command: 'peer:candidate',
                 candidate: candidate
               });
             };
-            _ref3 = _this.candidates;
-            for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-              candidate = _ref3[_i];
-              _this.candidates.push(candidate);
+            for (_i = 0, _len = candidates.length; _i < _len; _i++) {
+              candidate = candidates[_i];
+              candidates.push(candidate);
             }
-            return _this.candidates.length = 0;
+            return candidates.length = 0;
           case "peer:candidate":
             candidate = new RTCIceCandidate(message.candidate);
             _this.peerConnection.addIceCandidate(candidate);
             return Batman.developer.log("remote candidate", candidate.candidate);
+          case "game:ended":
+            return _this.disconnect();
         }
       });
     };

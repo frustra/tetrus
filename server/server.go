@@ -195,6 +195,13 @@ func (s *Server) HandleMessage(source *Player, message Map) error {
 			return err
 		}
 		source.peer.conn.Send(Map{"type": "peer:candidate", "candidate": message["candidate"]})
+	case "game:end":
+		if source.peer == nil || source.peer.peer != source {
+			return err
+		}
+		source.peer.conn.Send(Map{"type": "game:ended", "reason": "Peer Disconnected"})
+		source.peer.peer = nil
+		source.peer = nil
 	default:
 		log.Println("got a weird message", message)
 	}
