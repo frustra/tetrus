@@ -64,6 +64,8 @@ class window.Tetrus extends Batman.App
   @attachGlobalErrorHandler: ->
     @on 'socket:error', (err) =>
       Tetrus.Flash.error(err)
+      @reset()
+      Batman.redirect('/')
 
 $ ->
   Tetrus.set('hostAddr', window.location.host)
