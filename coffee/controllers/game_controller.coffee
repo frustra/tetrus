@@ -43,7 +43,7 @@ class Tetrus.GameController extends Batman.Controller
       when "board"
         @game.board.apply(message.board)
       when "piece"
-        @game.peerPiece.apply(message.piece)
+        @game.peer.piece.apply(message.piece)
       when "score"
         @game.speed += message.deltaSpeed
         @game.score += message.deltaScore

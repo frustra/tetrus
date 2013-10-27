@@ -215,8 +215,8 @@
   Tetrus.Game = (function() {
     function Game() {
       this.board = new Tetrus.Board;
-      this.piece = new Tetrus.Piece;
-      this.peerPiece = new Tetrus.Piece;
+      this.player = new Tetrus.Player;
+      this.peer = new Tetrus.Player;
       this.score = 0;
       this.speed = 7;
     }
@@ -294,6 +294,13 @@
 
   })();
 
+  Tetrus.Player = (function() {
+    function Player() {}
+
+    return Player;
+
+  })();
+
   Tetrus.GameController = (function(_super) {
     __extends(GameController, _super);
 
@@ -352,7 +359,7 @@
         case "board":
           return this.game.board.apply(message.board);
         case "piece":
-          return this.game.peerPiece.apply(message.piece);
+          return this.game.peer.piece.apply(message.piece);
         case "score":
           this.game.speed += message.deltaSpeed;
           this.game.score += message.deltaScore;
