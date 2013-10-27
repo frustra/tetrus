@@ -8,6 +8,7 @@ class Tetrus.GameController extends Batman.Controller
 
   start: ->
     @pollForTimeout()
+    @game = new Tetrus.Game
     @send(type: 'ping')
 
   disconnect: ->
@@ -29,6 +30,14 @@ class Tetrus.GameController extends Batman.Controller
         @send(type: 'pong', timeStamp: event.timeStamp)
       when "pong"
         @set('rtt', event.timeStamp - message.timeStamp)
+      when "board"
+        @game.board.apply(message.board)
+      when "piece"
+        @game.peerPiece.apply(message.piece)
+      when "score"
+        @game.fallSpeed += message.deltaSpeed
+        @game.score += message.deltaScore
+        @game.board.removeLine(line) for line in message.lines
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")

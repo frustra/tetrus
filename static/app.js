@@ -164,6 +164,58 @@
     }
   });
 
+  Tetrus.Board = (function() {
+    function Board() {
+      this.storage = new Array(10 * 20 * 4);
+    }
+
+    Board.get = function(x, y) {
+      var offset;
+      offset = (x + y * 10) * 4;
+      return {
+        r: this.storage[offset],
+        g: this.storage[offset + 1],
+        b: this.storage[offset + 2],
+        a: this.storage[offset + 3]
+      };
+    };
+
+    Board.set = function(x, y, color) {
+      var offset;
+      offset = (x + y * 10) * 4;
+      this.storage[offset] = color.r;
+      this.storage[offset + 1] = color.g;
+      this.storage[offset + 2] = color.b;
+      return this.storage[offset + 3] = color.a;
+    };
+
+    Board.removeLine = function(y) {
+      var endIndex, i, _i;
+      endIndex = (y + 1) * 40 - 4;
+      for (i = _i = endIndex; _i >= 0; i = _i += -1) {
+        if (i >= 40) {
+          this.storage[i] = this.storage[i - 40];
+        } else {
+          this.storage[i] = 0;
+        }
+      }
+    };
+
+    return Board;
+
+  })();
+
+  Tetrus.Game = (function() {
+    function Game() {
+      this.board = new Tetrus.Board;
+      this.piece = new Tetrus.Piece;
+      this.peerPiece = new Tetrus.Piece;
+    }
+
+    return Game;
+
+  })();
+
   Tetrus.Invite = (function(_super) {
     var x, _fn, _i, _len, _ref2,
       _this = this;
@@ -208,6 +260,21 @@
 
   })(Batman.Model);
 
+  Tetrus.Piece = (function() {
+    function Piece() {
+      this.position = {
+        x: 0,
+        y: 0
+      };
+      this.storage = [];
+    }
+
+    Piece.prototype.rotate = function(direction) {};
+
+    return Piece;
+
+  })();
+
   Tetrus.GameController = (function(_super) {
     __extends(GameController, _super);
 
@@ -226,6 +293,7 @@
 
     GameController.prototype.start = function() {
       this.pollForTimeout();
+      this.game = new Tetrus.Game;
       return this.send({
         type: 'ping'
       });
@@ -243,7 +311,7 @@
     };
 
     GameController.prototype._onMessage = function(event) {
-      var message;
+      var line, message, _i, _len, _ref3, _results;
       this.lastResponse = new Date().getTime();
       message = JSON.parse(event.data);
       console.log(message);
@@ -255,6 +323,21 @@
           });
         case "pong":
           return this.set('rtt', event.timeStamp - message.timeStamp);
+        case "board":
+          return this.game.board.apply(message.board);
+        case "piece":
+          return this.game.peerPiece.apply(message.piece);
+        case "score":
+          this.game.fallSpeed += message.deltaSpeed;
+          this.game.score += message.deltaScore;
+          _ref3 = message.lines;
+          _results = [];
+          for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+            line = _ref3[_i];
+            _results.push(this.game.board.removeLine(line));
+          }
+          return _results;
+          break;
         default:
           console.error(message);
           Tetrus.Flash.error("Communication Error");
