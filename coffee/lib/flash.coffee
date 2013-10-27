@@ -1,13 +1,4 @@
 Tetrus.Flash = Batman
-  _message: ""
-  _class: "message"
-
-  _flash: (message) ->
-    @set('_message', message)
-    node = $('#flash')
-    bottom = node.css('bottom')
-    node.animate(bottom: 0, 200).delay(5000).animate({bottom}, 800)
-
   message: (message) ->
     @set('_class', 'message')
     @_flash(message)
@@ -15,4 +6,15 @@ Tetrus.Flash = Batman
   error: (error) ->
     @set('_class', 'error')
     @_flash(error)
+
+  open: -> $('#flash').animate(bottom: 0, 200)
+  close: -> $('#flash').animate(bottom: @_bottom, 800)
+
+  _flash: (message) ->
+    clearTimeout(@_closeTimeout) if @_closeTimeout
+    @_closeTimeout = setTimeout(@close.bind(this), 5000)
+
+    @_bottom ?= $('#flash').css('bottom')
+    @set('_message', message)
+    @open()
 
