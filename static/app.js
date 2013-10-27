@@ -215,6 +215,7 @@
   Tetrus.Game = (function() {
     function Game() {
       this.fallLoop = __bind(this.fallLoop, this);
+      this.loop = __bind(this.loop, this);
       this.board = new Tetrus.Board;
       this.player = new Tetrus.Player;
       this.peer = new Tetrus.Player(true);
@@ -222,7 +223,21 @@
       this.speed = 750;
     }
 
-    Game.prototype.loop = function() {};
+    Game.prototype.loop = function() {
+      var ctrl, piece;
+      ctrl = Tetrus.get('controllers.game');
+      piece = this.player.piece;
+      ctrl.send({
+        type: 'piece',
+        piece: {
+          storage: piece.storage,
+          position: piece.position,
+          width: piece.width,
+          height: piece.height
+        }
+      });
+      return setTimeout(this.loop, 50);
+    };
 
     Game.prototype.fall = function() {
       this.collide();
@@ -440,7 +455,9 @@
 
     Piece.prototype.apply = function(piece) {
       this.storage = piece.storage;
-      return this.position = piece.position;
+      this.position = piece.position;
+      this.width = piece.width;
+      return this.height = piece.height;
     };
 
     return Piece;
@@ -488,6 +505,7 @@
     GameController.prototype.start = function() {
       this.pollForTimeout();
       console.log('Started game');
+      this.game.loop();
       this.game.fallLoop();
       this.keys = {};
       Batman.DOM.addEventListener(document, 'keydown', this.keydown);
@@ -680,13 +698,7 @@
             url: 'stun:stun.l.google.com:19302'
           }
         ]
-      }, {
-        optional: [
-          {
-            RtpDataChannels: true
-          }
-        ]
-      });
+      }, null);
       candidates = [];
       this.peerConnection.onicecandidate = function(event) {
         var candidate;

@@ -109,3 +109,5 @@ class Tetrus.Piece
   apply: (piece) ->
     @storage = piece.storage
     @position = piece.position
+    @width = piece.width
+    @height = piece.height

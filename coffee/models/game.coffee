@@ -6,7 +6,12 @@ class Tetrus.Game
     @score = 0
     @speed = 750
 
-  loop: ->
+  loop: =>
+    ctrl = Tetrus.get('controllers.game')
+    piece = @player.piece
+    ctrl.send(type: 'piece', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
+
+    setTimeout(@loop, 50)
 
   fall: ->
     @collide()

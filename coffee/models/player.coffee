@@ -8,3 +8,4 @@ class Tetrus.Player
     @nextPiece = new Tetrus.Piece()
     @piece.position.x = 5 - (@piece.width / 2)
     @piece.position.y = 0
+

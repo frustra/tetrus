@@ -10,6 +10,7 @@ class Tetrus.GameController extends Batman.Controller
   start: ->
     @pollForTimeout()
     console.log 'Started game'
+    @game.loop()
     @game.fallLoop()
 
     @keys = {}
@@ -153,7 +154,7 @@ class Tetrus.GameController extends Batman.Controller
     @set('connecting', true)
     @set('connected', false)
 
-    @peerConnection = new RTCPeerConnection({iceServers: [url: 'stun:stun.l.google.com:19302']}, {optional: [RtpDataChannels: true]})
+    @peerConnection = new RTCPeerConnection({iceServers: [url: 'stun:stun.l.google.com:19302']}, null)#{optional: [RtpDataChannels: true]})
     candidates = []
 
     @peerConnection.onicecandidate = (event) =>
