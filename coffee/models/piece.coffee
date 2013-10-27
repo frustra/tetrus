@@ -87,35 +87,23 @@ class Tetrus.Piece
       for dy in [0..radius] by 1
         for dx in [0..radius] by 1
           continue if dx == 0 and dy == 0
-          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
+
+          setStorage = (dx, dy) ->
             @storage = newstorage
             @width = newwidth
             @height = newheight
             @position.x += deltaX + dx
-            @position.y += deltaY - dy
-            return
+            @position.y += deltaY + dy
+
+          unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
+            return setStorage(dx, -dy)
           unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY - dy, newwidth, newheight)
-            @storage = newstorage
-            @width = newwidth
-            @height = newheight
-            @position.x += deltaX - dx
-            @position.y += deltaY - dy
-            return
+            return setStorage(-dx, -dy)
           unless dy == 0
             unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY + dy, newwidth, newheight)
-              @storage = newstorage
-              @width = newwidth
-              @height = newheight
-              @position.x += deltaX + dx
-              @position.y += deltaY + dy
-              return
+              return setStorage(dx, dy)
             unless collide(newstorage, @position.x + deltaX - dx, @position.y + deltaY + dy, newwidth, newheight)
-              @storage = newstorage
-              @width = newwidth
-              @height = newheight
-              @position.x += deltaX - dx
-              @position.y += deltaY + dy
-              return
+              return setStorage(-dx, dy)
 
   apply: (piece) ->
     @storage = piece.storage

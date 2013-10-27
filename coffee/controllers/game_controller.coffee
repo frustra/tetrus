@@ -88,6 +88,8 @@ class Tetrus.GameController extends Batman.Controller
           clearTimeout(@keys.lr)
         @keys.left = pressed
         return true
+      when 38
+        return true
       when 39
         if pressed
           repeat = =>
