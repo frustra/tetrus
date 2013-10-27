@@ -2,12 +2,12 @@ class Tetrus.GamePlayView extends Batman.View
   constructor: ->
     super
     @set('fps', 0)
-    @fpscounter = 0;
+    @fpscounter = 0
     @blockSize = 25
 
     setInterval =>
       @set('fps', @fpscounter)
-      @fpscounter = 0;
+      @fpscounter = 0
     , 1000
 
     @shaders = {}
@@ -16,12 +16,12 @@ class Tetrus.GamePlayView extends Batman.View
     @boardHeight = 20
     @board = new Array(@boardWidth * @boardHeight * 4)
 
-    @playerOneWidth = 2;
-    @playerOneHeight = 3;
+    @playerOneWidth = 2
+    @playerOneHeight = 3
     @playerOne = new Array(@playerOneWidth * @playerOneHeight * 4)
 
-    @playerTwoWidth = 3;
-    @playerTwoHeight = 3;
+    @playerTwoWidth = 3
+    @playerTwoHeight = 3
     @playerTwo = new Array(@playerTwoWidth * @playerTwoHeight * 4)
 
     for x in [0...@boardWidth] by 1
