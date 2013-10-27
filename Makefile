@@ -10,9 +10,10 @@ production: install compile-css compile-js manifest compile-server
 install:
 	npm install
 
-manifest:
-	rm -f static/master-*.js
-	rm -f static/master-*.css
+clean-manifest:
+	rm -f manifest.json static/master-*.{js,css}
+
+manifest: clean-manifest
 	./manifest.sh
 
 compile-js: dev-compile-js
@@ -33,8 +34,7 @@ dev-compile-js:
 dev-compile-css:
 	${lessc} less/master.less > static/master.css
 
-dev-compile:
-	rm -f manifest.json static/master-*.{js,css}
+dev-compile: clean-manifest
 	supervisor --quiet -n exit --extensions 'coffee|less' --ignore 'static,node_modules' -x make dev-compile-assets
 
 dev-server:
