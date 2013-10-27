@@ -5,9 +5,13 @@ uglifyjs = node_modules/.bin/uglifyjs
 precedence = coffee/app.coffee coffee/lib coffee/models coffee/controllers coffee/views
 libs = polyfills,jquery-*,glmatrix-*,webrtc-*,batman,batman.jquery
 
-production: install compile-css compile-js manifest compile-server
+production: install-dependencies assets server
+assets: css js manifest
 
-install:
+server: *.go server/*.go
+	go build
+
+install-dependencies:
 	npm install
 
 clean-manifest:
@@ -16,32 +20,30 @@ clean-manifest:
 manifest: clean-manifest
 	./manifest.sh
 
-compile-js: dev-compile-js
+js: dev-js
 	${uglifyjs} static/master.js --screw-ie8 --output static/master.min.js --comments --compress
 	mv static/master.min.js static/master.js
 
-compile-css:
+css:
 	${lessc} -O3 --yui-compress less/master.less > static/master.css
 
-compile-server:
-	go build
 
-dev-compile-js:
+dev-assets: clean-manifest dev-css dev-js
+
+dev-server: server
+	./tetrus -debug
+
+dev-js:
 	${coffee} --compile --join static/master.js ${precedence}
 	cat lib/{${libs}}.js static/master.js > static/master.full.js
 	mv static/master.full.js static/master.js
 
-dev-compile-css:
+dev-css:
 	${lessc} less/master.less > static/master.css
 
-dev-compile: clean-manifest
-	supervisor --quiet -n exit --extensions 'coffee|less' --ignore 'static,node_modules' -x make dev-compile-assets
+dev-watch-assets:
+	supervisor --quiet -n exit --extensions 'coffee|less' --ignore 'static,node_modules' -x make dev-assets
 
-dev-server:
-	supervisor --no-restart-on error --extensions 'go' --ignore 'static,node_modules' -x make dev-run
-
-dev-run: compile-server
-	./tetrus -debug
-
-dev-compile-assets: dev-compile-css dev-compile-js
+dev-watch-server:
+	supervisor --no-restart-on error --extensions 'go' --ignore 'static,node_modules' -x make dev-server
 

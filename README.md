@@ -25,10 +25,13 @@ First, make sure you have Go and node.js installed. Then, grab the code by runni
 
 To compile the assets, switch to the tetrus directory, run `npm install`, then run one of these tasks:
 
-  - `make` compile minified, fingerprinted versions of the CSS and JS
-  - `make dev-compile` compile unminified versions of the CSS and JS, and keep watching for changes
+  - `make assets` compile minified, fingerprinted versions of the CSS and JS
+  - `make dev-assets` compile unminified versions of the CSS and JS
+  - `make dev-watch-assets` compiles the unminified CSS and JS on every change
 
 Then, start up the server with one of these tasks:
 
-  - `make dev-server` compile and run the server, and keep watching for changes
+  - `make server` compile the server
+  - `make dev-server` compile and run the server in debug mode
+  - `make dev-watch-server` compiles and runs the server on every change
 
