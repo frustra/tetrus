@@ -9,10 +9,11 @@ class Tetrus.GameController extends Batman.Controller
 
   start: ->
     @pollForTimeout()
+    console.log 'Started game'
 
     @keys = {}
     Batman.DOM.addEventListener(document, 'keydown', @keydown)
-    Batman.DOM.addEventListener(document, 'keyup', @keydown)
+    Batman.DOM.addEventListener(document, 'keyup', @keyup)
 
   disconnect: ->
     @set('connecting', false)
@@ -33,12 +34,14 @@ class Tetrus.GameController extends Batman.Controller
   _onMessage: (event) ->
     @lastResponse = new Date().getTime()
     message = JSON.parse(event.data)
-    #console.log(message)
+    console.log(message)
 
     switch message.type
       when "ping"
+        console.log 'ping'
         @send(type: 'pong', timeStamp: event.timeStamp)
       when "pong"
+        console.log 'pong'
         @set('rtt', event.timeStamp - message.timeStamp)
       when "board"
         @game.board.apply(message.board)
@@ -54,6 +57,7 @@ class Tetrus.GameController extends Batman.Controller
         @disconnect()
 
   send: (message) ->
+    console.log message
     @peerChannel.send(JSON.stringify(message))
 
   pollForTimeout: ->
@@ -62,13 +66,13 @@ class Tetrus.GameController extends Batman.Controller
 
     check = =>
       return unless @connected
-      if @lastResponse < lastCheck
+      if @lastResponse < lastCheck - 500
         Tetrus.Flash.error("Connection timed out")
         @disconnect()
       else
         lastCheck = new Date().getTime()
-        @send(type: 'ping')
         setTimeout check, 2000
+        @send(type: 'ping')
 
     check()
 
@@ -79,24 +83,33 @@ class Tetrus.GameController extends Batman.Controller
           repeat = =>
             if @keys.left
               @game.player.piece.move(-1)
-              setTimeout(repeat, 20)
-          setTimeout(repeat, 100)
+              @keys.lr = setTimeout(repeat, 100)
+          @keys.lr = setTimeout(repeat, 150)
+          @game.player.piece.move(-1)
+        else
+          clearTimeout(@keys.lr)
         @keys.left = pressed
       when 39
         if pressed
           repeat = =>
             if @keys.right
               @game.player.piece.move(1)
-              setTimeout(repeat, 20)
-          setTimeout(repeat, 100)
+              @keys.rr = setTimeout(repeat, 100)
+          @keys.rr = setTimeout(repeat, 150)
+          @game.player.piece.move(1)
+        else
+          clearTimeout(@keys.rr)
         @keys.right = pressed
       when 40
         if pressed
           repeat = =>
             if @keys.down
               @game.fall()
-              setTimeout(repeat, 20)
-          setTimeout(repeat, 100)
+              @keys.dr = setTimeout(repeat, 100)
+          @keys.dr = setTimeout(repeat, 150)
+          @game.fall()
+        else
+          clearTimeout(@keys.dr)
         @keys.down = pressed
       when 32
         @keys.space = pressed
@@ -109,7 +122,8 @@ class Tetrus.GameController extends Batman.Controller
       when 90 # z
         @game.player.piece.rotate(3)
 
-  keyup: (event) => @_setKey(event.keyCode, false)
+  keyup: (event) =>
+    @_setKey(event.keyCode, false)
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel

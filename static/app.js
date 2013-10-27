@@ -226,8 +226,7 @@
 
     Game.prototype.fall = function() {
       this.collide();
-      this.player.piece.position.y++;
-      return console.log('fall');
+      return this.player.piece.position.y++;
     };
 
     Game.prototype.fallLoop = function() {
@@ -426,9 +425,10 @@
 
     GameController.prototype.start = function() {
       this.pollForTimeout();
+      console.log('Started game');
       this.keys = {};
       Batman.DOM.addEventListener(document, 'keydown', this.keydown);
-      return Batman.DOM.addEventListener(document, 'keyup', this.keydown);
+      return Batman.DOM.addEventListener(document, 'keyup', this.keyup);
     };
 
     GameController.prototype.disconnect = function() {
@@ -452,13 +452,16 @@
       var line, message, _i, _len, _ref3, _results;
       this.lastResponse = new Date().getTime();
       message = JSON.parse(event.data);
+      console.log(message);
       switch (message.type) {
         case "ping":
+          console.log('ping');
           return this.send({
             type: 'pong',
             timeStamp: event.timeStamp
           });
         case "pong":
+          console.log('pong');
           return this.set('rtt', event.timeStamp - message.timeStamp);
         case "board":
           return this.game.board.apply(message.board);
@@ -483,6 +486,7 @@
     };
 
     GameController.prototype.send = function(message) {
+      console.log(message);
       return this.peerChannel.send(JSON.stringify(message));
     };
 
@@ -495,15 +499,15 @@
         if (!_this.connected) {
           return;
         }
-        if (_this.lastResponse < lastCheck) {
+        if (_this.lastResponse < lastCheck - 500) {
           Tetrus.Flash.error("Connection timed out");
           return _this.disconnect();
         } else {
           lastCheck = new Date().getTime();
-          _this.send({
+          setTimeout(check, 2000);
+          return _this.send({
             type: 'ping'
           });
-          return setTimeout(check, 2000);
         }
       };
       return check();
@@ -518,10 +522,13 @@
             repeat = function() {
               if (_this.keys.left) {
                 _this.game.player.piece.move(-1);
-                return setTimeout(repeat, 20);
+                return _this.keys.lr = setTimeout(repeat, 100);
               }
             };
-            setTimeout(repeat, 100);
+            this.keys.lr = setTimeout(repeat, 150);
+            this.game.player.piece.move(-1);
+          } else {
+            clearTimeout(this.keys.lr);
           }
           return this.keys.left = pressed;
         case 39:
@@ -529,10 +536,13 @@
             repeat = function() {
               if (_this.keys.right) {
                 _this.game.player.piece.move(1);
-                return setTimeout(repeat, 20);
+                return _this.keys.rr = setTimeout(repeat, 100);
               }
             };
-            setTimeout(repeat, 100);
+            this.keys.rr = setTimeout(repeat, 150);
+            this.game.player.piece.move(1);
+          } else {
+            clearTimeout(this.keys.rr);
           }
           return this.keys.right = pressed;
         case 40:
@@ -540,10 +550,13 @@
             repeat = function() {
               if (_this.keys.down) {
                 _this.game.fall();
-                return setTimeout(repeat, 20);
+                return _this.keys.dr = setTimeout(repeat, 100);
               }
             };
-            setTimeout(repeat, 100);
+            this.keys.dr = setTimeout(repeat, 150);
+            this.game.fall();
+          } else {
+            clearTimeout(this.keys.dr);
           }
           return this.keys.down = pressed;
         case 32:
@@ -941,8 +954,10 @@
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         return (animloop = function() {
-          _this.render();
-          return requestAnimationFrame(animloop);
+          if (!_this.isDead && _this.controller) {
+            _this.render();
+            return requestAnimationFrame(animloop);
+          }
         })();
       });
     };

@@ -11,7 +11,6 @@ class Tetrus.Game
   fall: ->
     @collide()
     @player.piece.position.y++
-    console.log 'fall'
 
   fallLoop: =>
     @fall()

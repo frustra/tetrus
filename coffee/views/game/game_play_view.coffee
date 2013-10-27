@@ -130,8 +130,9 @@ class Tetrus.GamePlayView extends Batman.View
       gl.enable(gl.BLEND)
 
       do animloop = =>
-        @render()
-        requestAnimationFrame(animloop)
+        if !@isDead and @controller
+          @render()
+          requestAnimationFrame(animloop)
 
   initBuffers: ->
     return unless @gl and @shaders["board"] and @shaders["player1"] and @shaders["player2"] and @shaders["effects"]
