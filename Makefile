@@ -11,8 +11,8 @@ install:
 	npm install
 
 manifest:
-	rm -f static/master.*.js
-	rm -f static/master.*.css
+	rm -f static/master-*.js
+	rm -f static/master-*.css
 	./manifest.sh
 
 compile-js: dev-compile-js
@@ -34,6 +34,7 @@ dev-compile-css:
 	${lessc} less/master.less > static/master.css
 
 dev-compile:
+	rm -f manifest.json static/master-*.{js,css}
 	supervisor --quiet -n exit --extensions 'coffee|less' --ignore 'static,node_modules' -x make dev-compile-assets
 
 dev-server:
