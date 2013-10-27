@@ -240,8 +240,11 @@
     };
 
     Game.prototype.fall = function() {
-      this.collide();
-      return this.player.piece.position.y++;
+      var pos;
+      pos = this.player.piece.position;
+      if (!this.collide(this.player.piece.storage, pos.x, pos.y + 1, this.player.piece.width, this.player.piece.height)) {
+        return pos.y++;
+      }
     };
 
     Game.prototype.fallLoop = function() {
@@ -252,14 +255,25 @@
     Game.prototype.move = function(dx) {
       var pos;
       pos = this.player.piece.position;
-      if (pos.x + dx >= 0 && pos.x + dx < this.board.width - this.player.piece.width + 1) {
+      if (!this.collide(this.player.piece.storage, pos.x + dx, pos.y, this.player.piece.width, this.player.piece.height)) {
         return pos.x += dx;
       }
     };
 
-    Game.prototype.collide = function() {
-      var x, y, _ref1;
-      _ref1 = this.player.piece.position, x = _ref1.x, y = _ref1.y;
+    Game.prototype.collide = function(storage, x, y, width, height) {
+      var dx, dy, _i, _j;
+      if (x < 0 || y < 0 || x + width >= this.board.width || y + height >= this.board.height) {
+        true;
+      }
+      for (dx = _i = 0; _i < width; dx = _i += 1) {
+        for (dy = _j = 0; _j < height; dy = _j += 1) {
+          if (storage[(dx + dy * width) * 4 + 3] > 0) {
+            if (this.board.storage[(x + dx + (y + dy) * this.board.width) * 4 + 3] > 0) {
+              return true;
+            }
+          }
+        }
+      }
       return false;
     };
 
@@ -285,7 +299,7 @@
       });
     };
 
-    _ref2 = ['accept', 'reject', 'send'];
+    _ref2 = ['accept', 'reject', 'send', 'cancel'];
     _fn = function(x) {
       return Invite.prototype[x] = function() {
         return this._sendCommand(x);
@@ -389,10 +403,10 @@
         tmpstorage = new Array(newstorage.length);
         for (x = _j = 0; _j < newwidth; x = _j += 1) {
           for (y = _k = 0; _k < newheight; y = _k += 1) {
-            tmpstorage[(newheight - y - 1 + x * newwidth) * 4] = newstorage[(x + y * newwidth) * 4];
-            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1];
-            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2];
-            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3];
+            tmpstorage[(newheight - y - 1 + x * newheight) * 4] = newstorage[(x + y * newwidth) * 4];
+            tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1];
+            tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2];
+            tmpstorage[(newheight - y - 1 + x * newheight) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3];
           }
         }
         newstorage = (function() {
@@ -408,41 +422,51 @@
         newwidth = newheight;
         newheight = tmp;
       }
-      deltaX = Math.floor(this.width / 2 - newwidth / 2);
-      deltaY = Math.floor(this.height / 2 - newheight / 2);
+      deltaX = this.width - newwidth;
+      deltaY = 0;
       collide = function() {
         var _ref2;
         return (_ref2 = Tetrus.get('controllers.game').game).collide.apply(_ref2, arguments);
       };
-      if (!collide(newstorage, this.position.x + deltaX, this.position.y + deltaY)) {
+      if (!collide(newstorage, this.position.x + deltaX, this.position.y + deltaY, newwidth, newheight)) {
         this.storage = newstorage;
+        this.width = newwidth;
+        this.height = newheight;
         this.position.x += deltaX;
         return this.position.y += deltaY;
       } else {
         radius = 2;
         for (dy = _l = -radius; _l >= 0; dy = _l += -1) {
           for (dx = _m = 1; _m <= radius; dx = _m += 1) {
-            if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY - dy)) {
+            if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY - dy, newwidth, newheight)) {
               this.storage = newstorage;
+              this.width = newwidth;
+              this.height = newheight;
               this.position.x += deltaX + dx;
               this.position.y += deltaY - dy;
               return;
             }
-            if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY - dy)) {
+            if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY - dy, newwidth, newheight)) {
               this.storage = newstorage;
+              this.width = newwidth;
+              this.height = newheight;
               this.position.x += deltaX - dx;
               this.position.y += deltaY - dy;
               return;
             }
             if (dy !== 0) {
-              if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY + dy)) {
+              if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY + dy, newwidth, newheight)) {
                 this.storage = newstorage;
+                this.width = newwidth;
+                this.height = newheight;
                 this.position.x += deltaX + dx;
                 this.position.y += deltaY + dy;
                 return;
               }
-              if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY + dy)) {
+              if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY + dy, newwidth, newheight)) {
                 this.storage = newstorage;
+                this.width = newwidth;
+                this.height = newheight;
                 this.position.x += deltaX - dx;
                 this.position.y += deltaY + dy;
                 return;
@@ -847,6 +871,7 @@
         case "player:left":
           this.get('receivedInvites').unset(message.player.username);
           if (this.get('sentInvite.username') === message.player.username) {
+            this.unset('pending');
             this.unset('sentInvite');
           }
           return Tetrus.get('peerHash').unset(message.player.username);
@@ -876,6 +901,12 @@
       });
     });
 
+    LobbyController.accessor('invitesSet', function() {
+      return this.get('receivedInvites').map(function(_, value) {
+        return value;
+      });
+    });
+
     LobbyController.prototype.sendInvite = function(node, event, view) {
       if (this.get('pending')) {
         return Tetrus.Flash.message('You still have a pending invitation');
@@ -885,6 +916,13 @@
           isSource: true
         })).send();
         return this.set('pending', true);
+      }
+    };
+
+    LobbyController.prototype.cancelInvite = function(node, event, view) {
+      if (this.get('sentInvite')) {
+        this.unset('sentInvite').cancel();
+        return this.set('pending', false);
       }
     };
 

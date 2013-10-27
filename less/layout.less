@@ -53,12 +53,28 @@
 #lobby {
   ul {
     list-style-type: none;
-    padding: 0;
     margin: 0;
-    font-size: 2em;
+    padding: 0;
+    font-size: 24px;
+    background: #2a2a3a;
+    li {
+      padding: 10px 10px;
+    }
+    &.peers li {
+      &:nth-child(even) {
+        background: #202030;
+      }
+      &:first-child {
+        background: #556;
+        color: #223;
+      }
+    }
+    .smaller {
+      font-size: 18px;
+    }
     a {
       &:hover {
-        color: white;
+        color: #eef;
       }
     }
   }
@@ -66,6 +82,20 @@
 
 #invites {
   margin-top: 20px;
+  background: #2a2a3a;
+  ul {
+    font-size: 18px;
+    li {
+      padding: 5px;
+    }
+    a {
+      font-size: 12px;
+    }
+    .username {
+      font-weight: bold;
+      color: #eef;
+    }
+  }
 }
 
 #flash {

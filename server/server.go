@@ -156,6 +156,8 @@ func (s *Server) HandleMessage(source *Player, message Map) error {
 		s.RelayInviteCommand("invite:accepted", source, message)
 	case "invite:reject":
 		s.RelayInviteCommand("invite:rejected", source, message)
+	case "invite:cancel":
+		s.RelayInviteCommand("invite:cancelled", source, message)
 	case "peer:offer":
 		targetName := message["username"]
 		if targetName, ok := targetName.(string); ok {

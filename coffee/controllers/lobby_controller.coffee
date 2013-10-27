@@ -19,6 +19,7 @@ class Tetrus.LobbyController extends Batman.Controller
       when "player:left"
         @get('receivedInvites').unset(message.player.username)
         if @get('sentInvite.username') is message.player.username
+          @unset('pending')
           @unset('sentInvite')
         Tetrus.get('peerHash').unset(message.player.username)
 
@@ -45,12 +46,20 @@ class Tetrus.LobbyController extends Batman.Controller
   @accessor 'peers', ->
     Tetrus.get('peerHash').map (_, value) -> value
 
+  @accessor 'invitesSet', ->
+    @get('receivedInvites').map (_, value) -> value
+
   sendInvite: (node, event, view) ->
     if @get('pending')
       Tetrus.Flash.message('You still have a pending invitation')
     else
       @set('sentInvite', new Tetrus.Invite(username: view.get('peer').username, isSource: true)).send()
       @set('pending', true)
+
+  cancelInvite: (node, event, view) ->
+    if @get('sentInvite')
+      @unset('sentInvite').cancel()
+      @set('pending', false)
 
   acceptInvite: (node, event, view) ->
     invite = view.get('invite')
