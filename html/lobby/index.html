@@ -4,7 +4,8 @@
   </li>
 </ul>
 
-<div data-showif="true | or receivedInvites.length">
+<div id="invites">
+  <h2 data-showif="receivedInvites.length">invites:</h2>
   <ul>
     <li data-foreach-inviter="receivedInvites" data-context-invite="receivedInvites[inviter]">
       <span data-bind="invite.username"></span> :

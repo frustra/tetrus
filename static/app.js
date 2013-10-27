@@ -365,7 +365,7 @@
             this.storage[(x + y * this.width) * 4] = colors[piecenum].r;
             this.storage[(x + y * this.width) * 4 + 1] = colors[piecenum].g;
             this.storage[(x + y * this.width) * 4 + 2] = colors[piecenum].b;
-            this.storage[(x + y * this.width) * 4 + 3] = (pieces[piecenum][y][x] ? (peer ? 220 : 255) : 0);
+            this.storage[(x + y * this.width) * 4 + 3] = (pieces[piecenum][y][x] ? (peer ? 180 : 255) : 0);
           }
         }
       }
