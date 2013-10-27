@@ -8,6 +8,7 @@ class Tetrus.Game
 
   loop: =>
     ctrl = Tetrus.get('controllers.game')
+    return unless ctrl.connected
     piece = @player.piece
     ctrl.send(type: 'piece', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
 
@@ -22,6 +23,8 @@ class Tetrus.Game
       @player.setNextPiece()
 
   fallLoop: =>
+    ctrl = Tetrus.get('controllers.game')
+    return unless ctrl.connected
     @fall()
     setTimeout(@fallLoop, @speed)
 
@@ -31,7 +34,7 @@ class Tetrus.Game
       pos.x += dx
 
   placePiece: (piece) ->
-    if piece.position.y < 0
+    if piece.position.y <= 0
       Tetrus.Flash.message("Game Over")
       Tetrus.get('controllers.game').disconnect()
     for x in [0...piece.width] by 1
