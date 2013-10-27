@@ -8,6 +8,8 @@ class Tetrus.Game
 
   loop: =>
     ctrl = Tetrus.get('controllers.game')
+    return unless ctrl.playing
+
     piece = @player.piece
     storage = new Array(piece.storage.length)
     for val, i in piece.storage
@@ -31,6 +33,9 @@ class Tetrus.Game
       @player.setNextPiece()
 
   fallLoop: =>
+    ctrl = Tetrus.get('controllers.game')
+    return unless ctrl.playing
+
     @fall()
     setTimeout(@fallLoop, @speed)
 
@@ -44,7 +49,7 @@ class Tetrus.Game
 
     if piece.position.y <= 0
       Tetrus.Flash.message("Game Over")
-      ctrl.send(type: 'gameover')
+      ctrl.stop()
       return
 
     for x in [0...piece.width] by 1
@@ -54,6 +59,7 @@ class Tetrus.Game
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 1] = piece.storage[(x + y * piece.width) * 4 + 1]
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2]
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
+
     @clearLines()
 
     ctrl.send(type: 'board', board: { storage: @board.storage })

@@ -9,7 +9,7 @@ class Tetrus.GameController extends Batman.Controller
 
   start: ->
     @pollForTimeout()
-    console.log 'Started game'
+    @playing = true
     @game.loop()
     @game.fallLoop()
 
@@ -17,14 +17,19 @@ class Tetrus.GameController extends Batman.Controller
     Batman.DOM.addEventListener(document, 'keydown', @keydown)
     Batman.DOM.addEventListener(document, 'keyup', @keyup)
 
-  disconnect: ->
+  stop: ->
+    @playing = false
+
+    Batman.DOM.removeEventListener(document, 'keydown', @keydown)
+    Batman.DOM.removeEventListener(document, 'keyup', @keydown)
+
+    setTimeout(@disconnect, 5000)
+
+  disconnect: =>
     @set('connecting', false)
     @set('connected', false)
     delete @peerChannel
     delete @peerConnection
-
-    Batman.DOM.removeEventListener(document, 'keydown', @keydown)
-    Batman.DOM.removeEventListener(document, 'keyup', @keydown)
 
     if @_onServerMessage
       Tetrus.off 'socket:message', @_onServerMessage
@@ -50,9 +55,6 @@ class Tetrus.GameController extends Batman.Controller
         @game.speed += message.deltaSpeed
         @game.score += message.deltaScore
         @game.board.removeLine(line) for line in message.lines
-      when "gameover"
-        Tetrus.Flash.message("Game Over")
-        setTimeout(@disconnect, 5000)
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")
