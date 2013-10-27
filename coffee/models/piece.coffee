@@ -52,7 +52,7 @@ class Tetrus.Piece
           @storage[(x + y * @width) * 4] = colors[piecenum].r
           @storage[(x + y * @width) * 4 + 1] = colors[piecenum].g
           @storage[(x + y * @width) * 4 + 2] = colors[piecenum].b
-          @storage[(x + y * @width) * 4 + 3] = (if pieces[piecenum][y][x] then (if peer then 100 else 255) else 0)
+          @storage[(x + y * @width) * 4 + 3] = (if pieces[piecenum][y][x] then (if peer then 220 else 255) else 0)
 
   rotate: (times) ->
     newstorage = (x for x in @storage)

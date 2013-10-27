@@ -23,12 +23,12 @@ class Tetrus.GamePlayView extends Batman.View
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
-    gl.useProgram(@shaders["player1"])
+    gl.useProgram(@shaders["player2"])
     gl.bindFramebuffer(gl.FRAMEBUFFER, @fbo2)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
-    gl.useProgram(@shaders["player2"])
+    gl.useProgram(@shaders["player1"])
     gl.bindFramebuffer(gl.FRAMEBUFFER, @fbo1)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
@@ -214,7 +214,7 @@ class Tetrus.GamePlayView extends Batman.View
     gl.uniform1i(@shaders["player1"].uPieceUniform, 1)
     gl.uniform2f(@shaders["player1"].uBoardSizeUniform, @controller.game.board.width, @controller.game.board.height)
     gl.uniform1f(@shaders["player1"].uBlockSizeUniform, @blockSize)
-    gl.uniform1i(@shaders["player1"].uBufferUniform, 3)
+    gl.uniform1i(@shaders["player1"].uBufferUniform, 4)
     gl.uniform2f(@shaders["player1"].uSizeUniform, gl.viewportWidth, gl.viewportHeight)
 
     gl.useProgram(@shaders["player2"])
@@ -223,7 +223,7 @@ class Tetrus.GamePlayView extends Batman.View
     gl.uniform1i(@shaders["player2"].uPieceUniform, 2)
     gl.uniform2f(@shaders["player2"].uBoardSizeUniform, @controller.game.board.width, @controller.game.board.height)
     gl.uniform1f(@shaders["player2"].uBlockSizeUniform, @blockSize)
-    gl.uniform1i(@shaders["player2"].uBufferUniform, 4)
+    gl.uniform1i(@shaders["player2"].uBufferUniform, 3)
     gl.uniform2f(@shaders["player2"].uSizeUniform, gl.viewportWidth, gl.viewportHeight)
 
     gl.useProgram(@shaders["effects"])

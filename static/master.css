@@ -85,6 +85,11 @@
 #flash span {
   position: relative;
 }
+#glcanvas {
+  display: block;
+  margin: 0 auto;
+  background: #2a2a3a;
+}
 body {
   font-family: "Lato", "Helvetica", sans-serif;
   background: #334;

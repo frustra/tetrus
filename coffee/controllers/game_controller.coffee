@@ -10,6 +10,7 @@ class Tetrus.GameController extends Batman.Controller
   start: ->
     @pollForTimeout()
     console.log 'Started game'
+    @game.fallLoop()
 
     @keys = {}
     Batman.DOM.addEventListener(document, 'keydown', @keydown)
@@ -34,14 +35,11 @@ class Tetrus.GameController extends Batman.Controller
   _onMessage: (event) ->
     @lastResponse = new Date().getTime()
     message = JSON.parse(event.data)
-    console.log(message)
 
     switch message.type
       when "ping"
-        console.log 'ping'
         @send(type: 'pong', timeStamp: event.timeStamp)
       when "pong"
-        console.log 'pong'
         @set('rtt', event.timeStamp - message.timeStamp)
       when "board"
         @game.board.apply(message.board)

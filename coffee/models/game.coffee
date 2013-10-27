@@ -14,11 +14,11 @@ class Tetrus.Game
 
   fallLoop: =>
     @fall()
-    setTimeout(fallLoop, @speed)
+    setTimeout(@fallLoop, @speed)
 
   move: (dx) ->
     pos = @player.piece.position
-    if pos.x + dx >= 0 and pos.x + dx < @board.width
+    if pos.x + dx >= 0 and pos.x + dx < @board.width - @player.piece.width + 1
       pos.x += dx
 
   collide: ->

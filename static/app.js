@@ -231,13 +231,13 @@
 
     Game.prototype.fallLoop = function() {
       this.fall();
-      return setTimeout(fallLoop, this.speed);
+      return setTimeout(this.fallLoop, this.speed);
     };
 
     Game.prototype.move = function(dx) {
       var pos;
       pos = this.player.piece.position;
-      if (pos.x + dx >= 0 && pos.x + dx < this.board.width) {
+      if (pos.x + dx >= 0 && pos.x + dx < this.board.width - this.player.piece.width + 1) {
         return pos.x += dx;
       }
     };
@@ -350,7 +350,7 @@
             this.storage[(x + y * this.width) * 4] = colors[piecenum].r;
             this.storage[(x + y * this.width) * 4 + 1] = colors[piecenum].g;
             this.storage[(x + y * this.width) * 4 + 2] = colors[piecenum].b;
-            this.storage[(x + y * this.width) * 4 + 3] = (pieces[piecenum][y][x] ? (peer ? 100 : 255) : 0);
+            this.storage[(x + y * this.width) * 4 + 3] = (pieces[piecenum][y][x] ? (peer ? 220 : 255) : 0);
           }
         }
       }
@@ -488,6 +488,7 @@
     GameController.prototype.start = function() {
       this.pollForTimeout();
       console.log('Started game');
+      this.game.fallLoop();
       this.keys = {};
       Batman.DOM.addEventListener(document, 'keydown', this.keydown);
       return Batman.DOM.addEventListener(document, 'keyup', this.keyup);
@@ -514,16 +515,13 @@
       var line, message, _i, _len, _ref3, _results;
       this.lastResponse = new Date().getTime();
       message = JSON.parse(event.data);
-      console.log(message);
       switch (message.type) {
         case "ping":
-          console.log('ping');
           return this.send({
             type: 'pong',
             timeStamp: event.timeStamp
           });
         case "pong":
-          console.log('pong');
           return this.set('rtt', event.timeStamp - message.timeStamp);
         case "board":
           return this.game.board.apply(message.board);
@@ -921,11 +919,11 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      gl.useProgram(this.shaders["player1"]);
+      gl.useProgram(this.shaders["player2"]);
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo2);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      gl.useProgram(this.shaders["player2"]);
+      gl.useProgram(this.shaders["player1"]);
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -1101,7 +1099,7 @@
       gl.uniform1i(this.shaders["player1"].uPieceUniform, 1);
       gl.uniform2f(this.shaders["player1"].uBoardSizeUniform, this.controller.game.board.width, this.controller.game.board.height);
       gl.uniform1f(this.shaders["player1"].uBlockSizeUniform, this.blockSize);
-      gl.uniform1i(this.shaders["player1"].uBufferUniform, 3);
+      gl.uniform1i(this.shaders["player1"].uBufferUniform, 4);
       gl.uniform2f(this.shaders["player1"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
       gl.useProgram(this.shaders["player2"]);
       gl.uniformMatrix4fv(this.shaders["player2"].pMatrixUniform, false, pMatrix);
@@ -1109,7 +1107,7 @@
       gl.uniform1i(this.shaders["player2"].uPieceUniform, 2);
       gl.uniform2f(this.shaders["player2"].uBoardSizeUniform, this.controller.game.board.width, this.controller.game.board.height);
       gl.uniform1f(this.shaders["player2"].uBlockSizeUniform, this.blockSize);
-      gl.uniform1i(this.shaders["player2"].uBufferUniform, 4);
+      gl.uniform1i(this.shaders["player2"].uBufferUniform, 3);
       gl.uniform2f(this.shaders["player2"].uSizeUniform, gl.viewportWidth, gl.viewportHeight);
       gl.useProgram(this.shaders["effects"]);
       gl.uniformMatrix4fv(this.shaders["effects"].pMatrixUniform, false, pMatrix);
