@@ -45,6 +45,9 @@ class Tetrus.Game
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2]
           @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
 
+    ctrl = Tetrus.get('controllers.game')
+    ctrl.send(type: 'board', board: { storage: @board.storage })
+
   collide: (storage, x, y, width, height) ->
     if x < 0 or y < 0 or x + (width - 1) >= @board.width or y + (height - 1) >= @board.height
       return true

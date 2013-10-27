@@ -28,5 +28,5 @@ class Tetrus.Board
     return
 
   apply: (board) ->
-    @storage = board
+    @storage = board.storage
 
