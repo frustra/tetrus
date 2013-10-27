@@ -25,6 +25,7 @@ class Tetrus.LobbyController extends Batman.Controller
 
       when "invite:accepted"
         @unset('pending')
+        @get('receivedInvites').forEach (invite) -> invite.reject()
         Tetrus.play(@unset('sentInvite'))
 
       when "invite:rejected"
@@ -33,7 +34,7 @@ class Tetrus.LobbyController extends Batman.Controller
         @unset('sentInvite')
 
       when "invite:received"
-        @get('receivedInvites').set(message.invite.username, invite = new Tetrus.Invite(message.invite))
+        @get('receivedInvites').set(message.invite.username, new Tetrus.Invite(message.invite))
         Tetrus.Flash.message("Got invitation from #{message.invite.username}")
 
       when "invite:cancelled"

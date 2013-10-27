@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -18,6 +19,7 @@ type Map map[string]interface{}
 type Server struct {
 	listener net.Listener
 	Players  map[string]*Player
+	Debug bool
 
 	http.Server
 }
@@ -33,11 +35,12 @@ type Player struct {
 	peer *Player
 }
 
-func New() (*Server, error) {
+func New(port int, debug bool) (*Server, error) {
 	s := &Server{
 		Players: make(map[string]*Player),
+		Debug: debug,
 		Server: http.Server{
-			Addr: ":8080",
+			Addr: ":" + strconv.Itoa(port),
 		},
 	}
 	http.HandleFunc("/play_socket", s.ServeWS)
@@ -111,7 +114,9 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	s.Players[username] = p
 	conn.Send(Map{"type": "connected"})
 
-	log.Println("Player", username, "connected")
+	if s.Debug {
+		log.Println("Player", username, "connected")
+	}
 	defer func() {
 		if p.peer != nil {
 			p.peer.peer = nil
@@ -121,7 +126,9 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 		for _, player := range s.Players {
 			player.conn.Send(Map{"type": "player:left", "player": Map{"username": p.username}})
 		}
-		log.Println("Player", username, "disconnected")
+		if s.Debug {
+			log.Println("Player", username, "disconnected")
+		}
 	}()
 
 	for {
@@ -141,7 +148,6 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) HandleMessage(source *Player, message Map) error {
 	var err error
-	log.Println("got message", message)
 
 	switch message["command"] {
 	case "fetch":
@@ -205,7 +211,9 @@ func (s *Server) HandleMessage(source *Player, message Map) error {
 		source.peer.peer = nil
 		source.peer = nil
 	default:
-		log.Println("got a weird message", message)
+		if s.Debug {
+			log.Println("got a weird message", message)
+		}
 	}
 	return err
 }

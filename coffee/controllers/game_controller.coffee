@@ -60,6 +60,8 @@ class Tetrus.GameController extends Batman.Controller
         Tetrus.Flash.error("Communication Error")
         @disconnect()
 
+    return
+
   send: (message) ->
     @peerChannel.send(JSON.stringify(message))
 

@@ -1,5 +1,6 @@
 /node_modules
 /tetrus
-/static/master.css
-/static/app.js
-vendor_batman
+/static/master*.css
+/static/master*.js
+/manifest.json
+

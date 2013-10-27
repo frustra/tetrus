@@ -5,13 +5,18 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/frustra/tetrus/server"
 )
 
+var port = flag.Int("port", 8080, "which port to listen on")
+var debug = flag.Bool("debug", false, "enables verbose logging")
+
 func main() {
-	s, err := server.New()
+	flag.Parse()
+	s, err := server.New(*port, *debug)
 	err = s.ListenAndServe()
 
 	if err != nil {
