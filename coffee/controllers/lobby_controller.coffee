@@ -18,6 +18,8 @@ class Tetrus.LobbyController extends Batman.Controller
 
       when "player:left"
         @get('receivedInvites').unset(message.player.username)
+        if @get('sentInvite.username') is message.player.username
+          @unset('sentInvite')
         Tetrus.get('peerHash').unset(message.player.username)
 
       when "invite:accepted"

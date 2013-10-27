@@ -71,6 +71,15 @@
 #game .masthead h1 {
   font-size: 2em;
 }
+#lobby ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-size: 2em;
+}
+#lobby ul a:hover {
+  color: white;
+}
 #flash {
   position: fixed;
   width: 100%;
@@ -84,6 +93,9 @@
 }
 #flash span {
   position: relative;
+}
+#game {
+  text-align: center;
 }
 #glcanvas {
   display: block;

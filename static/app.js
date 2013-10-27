@@ -846,6 +846,9 @@
           return Tetrus.get('peerHash').set(message.player.username, message.player);
         case "player:left":
           this.get('receivedInvites').unset(message.player.username);
+          if (this.get('sentInvite.username') === message.player.username) {
+            this.unset('sentInvite');
+          }
           return Tetrus.get('peerHash').unset(message.player.username);
         case "invite:accepted":
           this.unset('pending');
