@@ -16,7 +16,7 @@ class Tetrus.Game
       if i % 4 != 3
         storage[i] = val
       else if val != 0
-        storage[i] = 200
+        storage[i] = Tetrus.Piece.peerAlpha
       else
         storage[i] = 0
 

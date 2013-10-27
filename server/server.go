@@ -201,7 +201,7 @@ func (s *Server) HandleMessage(source *Player, message Map) error {
 		if source.peer == nil || source.peer.peer != source {
 			return err
 		}
-		source.peer.conn.Send(Map{"type": "game:ended", "reason": "Peer Disconnected"})
+		source.peer.conn.Send(Map{"type": "game:ended"})
 		source.peer.peer = nil
 		source.peer = nil
 	default:

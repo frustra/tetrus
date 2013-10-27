@@ -213,5 +213,7 @@ class Tetrus.GameController extends Batman.Controller
           Batman.developer.log("remote candidate", candidate.candidate)
 
         when "game:ended"
+          if message.reason
+            Tetrus.Flash.message(message.reason)
           @disconnect()
 

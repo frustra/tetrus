@@ -38,6 +38,9 @@ pieces = [
 ]
 
 class Tetrus.Piece
+  @playerAlpha = 255
+  @peerAlpha = 200
+
   constructor: (peer, @storage) ->
     @position = x: 0, y: 0
     @width = 0
@@ -48,7 +51,7 @@ class Tetrus.Piece
       @height = piece.length
       @width = piece[0].length
 
-      alpha = (if peer then 200 else 255)
+      alpha = (if peer then @constructor.peerAlpha else @constructor.playerAlpha)
 
       @storage = new Array(@width * @height * 4)
       for x in [0...@width] by 1
