@@ -3,6 +3,7 @@ coffee = node_modules/.bin/coffee
 uglifyjs = node_modules/.bin/uglifyjs
 
 precedence = coffee/app.coffee coffee/lib coffee/models coffee/controllers coffee/views
+libs = polyfills,jquery-*,glmatrix-*,webrtc-*,batman,batman.jquery
 
 production: install compile-css compile-js manifest compile-server
 
@@ -26,6 +27,8 @@ compile-server:
 
 dev-compile-js:
 	${coffee} --compile --join static/master.js ${precedence}
+	cat lib/{${libs}}.js static/master.js > static/master.full.js
+	mv static/master.full.js static/master.js
 
 dev-compile-css:
 	${lessc} less/master.less > static/master.css

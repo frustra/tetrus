@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,7 +20,10 @@ type Map map[string]interface{}
 type Server struct {
 	listener net.Listener
 	Players  map[string]*Player
+
+	Root string
 	Debug bool
+	LayoutBuffer []byte
 
 	http.Server
 }
@@ -43,10 +47,21 @@ func New(port int, debug bool) (*Server, error) {
 			Addr: ":" + strconv.Itoa(port),
 		},
 	}
+
+	var err error
+	s.Root, err = os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	log.Println("Executing from directory:", s.Root)
+	s.LoadManifest()
+
 	http.HandleFunc("/play_socket", s.ServeWS)
 	http.Handle("/lobby/", http.RedirectHandler("/", 302))
 	http.Handle("/play/", http.RedirectHandler("/", 302))
-	http.Handle("/", http.FileServer(http.Dir("./static/")))
+	http.Handle("/html/", http.FileServer(http.Dir(".")))
+	http.Handle("/static/", http.FileServer(http.Dir(".")))
+	http.HandleFunc("/", s.ServeLayout)
 
 	return s, nil
 }
