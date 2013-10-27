@@ -3,12 +3,12 @@ class Tetrus.GameController extends Batman.Controller
 
   play: ->
     @peer = new Tetrus.Peer(Tetrus.get('peer'))
+    @game = new Tetrus.Game
     @set('isServer', @peer.get('isServer'))
     @_negotiate()
 
   start: ->
     @pollForTimeout()
-    @game = new Tetrus.Game
 
     @keys = {}
     Batman.DOM.addEventListener(document, 'keydown', @keydown)
@@ -75,10 +75,28 @@ class Tetrus.GameController extends Batman.Controller
   _setKey: (keyCode, pressed) ->
     switch event.keyCode
       when 37
+        if pressed
+          repeat = =>
+            if @keys.left
+              @game.player.piece.move(-1)
+              setTimeout(repeat, 20)
+          setTimeout(repeat, 100)
         @keys.left = pressed
       when 39
+        if pressed
+          repeat = =>
+            if @keys.right
+              @game.player.piece.move(1)
+              setTimeout(repeat, 20)
+          setTimeout(repeat, 100)
         @keys.right = pressed
       when 40
+        if pressed
+          repeat = =>
+            if @keys.down
+              @game.fall()
+              setTimeout(repeat, 20)
+          setTimeout(repeat, 100)
         @keys.down = pressed
       when 32
         @keys.space = pressed

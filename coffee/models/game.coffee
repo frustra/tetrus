@@ -8,11 +8,19 @@ class Tetrus.Game
 
   loop: ->
 
-  fallLoop: =>
-    @player.piece.y++
+  fall: ->
     @collide()
+    @player.piece.position.y++
+    console.log 'fall'
 
+  fallLoop: =>
+    @fall()
     setTimeout(fallLoop, @speed)
+
+  move: (dx) ->
+    pos = @player.piece.position
+    if pos.x + dx >= 0 and pos.x + dx < @board.width
+      pos.x += dx
 
   collide: ->
     {x, y} = @player.piece.position
