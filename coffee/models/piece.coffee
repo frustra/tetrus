@@ -4,4 +4,9 @@ class Tetrus.Piece
     @storage = []
 
   rotate: (direction) ->
+    storage = []
+
+  apply: (piece) ->
+    @storage = piece.storage
+    @position = piece.position
 

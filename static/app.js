@@ -201,6 +201,10 @@
       }
     };
 
+    Board.prototype.apply = function(board) {
+      return this.storage = board;
+    };
+
     return Board;
 
   })();
@@ -210,6 +214,8 @@
       this.board = new Tetrus.Board;
       this.piece = new Tetrus.Piece;
       this.peerPiece = new Tetrus.Piece;
+      this.score = 0;
+      this.speed = 7;
     }
 
     return Game;
@@ -269,7 +275,15 @@
       this.storage = [];
     }
 
-    Piece.prototype.rotate = function(direction) {};
+    Piece.prototype.rotate = function(direction) {
+      var storage;
+      return storage = [];
+    };
+
+    Piece.prototype.apply = function(piece) {
+      this.storage = piece.storage;
+      return this.position = piece.position;
+    };
 
     return Piece;
 
@@ -328,7 +342,7 @@
         case "piece":
           return this.game.peerPiece.apply(message.piece);
         case "score":
-          this.game.fallSpeed += message.deltaSpeed;
+          this.game.speed += message.deltaSpeed;
           this.game.score += message.deltaScore;
           _ref3 = message.lines;
           _results = [];

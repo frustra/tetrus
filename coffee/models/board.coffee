@@ -25,3 +25,6 @@ class Tetrus.Board
         @storage[i] = 0
     return
 
+  apply: (board) ->
+    @storage = board
+
