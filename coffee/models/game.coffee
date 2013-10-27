@@ -9,7 +9,15 @@ class Tetrus.Game
   loop: =>
     ctrl = Tetrus.get('controllers.game')
     piece = @player.piece
-    ctrl.send(type: 'piece', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
+    storage = new Array(piece.storage.length)
+    for val, i in piece.storage
+      if i % 4 != 3
+        storage[i] = val
+      else if val != 0
+        storage[i] = 200
+      else
+        storage[i] = 0
+    ctrl.send(type: 'piece', piece: { storage: storage, position: piece.position, width: piece.width, height: piece.height })
 
     setTimeout(@loop, 50)
 
