@@ -356,24 +356,82 @@
     }
 
     Piece.prototype.rotate = function(times) {
-      var i, newstorage, tmp, x, y, _i, _j, _k, _ref2, _ref3, _results;
-      _results = [];
+      var collide, deltaX, deltaY, dx, dy, i, newheight, newstorage, newwidth, radius, tmp, tmpstorage, x, y, _i, _j, _k, _l, _m;
+      newstorage = (function() {
+        var _i, _len, _ref2, _results;
+        _ref2 = this.storage;
+        _results = [];
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          x = _ref2[_i];
+          _results.push(x);
+        }
+        return _results;
+      }).call(this);
+      newwidth = this.width;
+      newheight = this.height;
       for (i = _i = 0; _i < times; i = _i += 1) {
-        newstorage = new Array(this.storage.length);
-        for (x = _j = 0, _ref2 = this.width; _j < _ref2; x = _j += 1) {
-          for (y = _k = 0, _ref3 = this.height; _k < _ref3; y = _k += 1) {
-            newstorage[(this.height - y - 1 + x * this.width) * 4] = this.storage[(x + y * this.width) * 4];
-            newstorage[(this.height - y - 1 + x * this.width) * 4 + 1] = this.storage[(x + y * this.width) * 4 + 1];
-            newstorage[(this.height - y - 1 + x * this.width) * 4 + 2] = this.storage[(x + y * this.width) * 4 + 2];
-            newstorage[(this.height - y - 1 + x * this.width) * 4 + 3] = this.storage[(x + y * this.width) * 4 + 3];
+        tmpstorage = new Array(newstorage.length);
+        for (x = _j = 0; _j < newwidth; x = _j += 1) {
+          for (y = _k = 0; _k < newheight; y = _k += 1) {
+            tmpstorage[(newheight - y - 1 + x * newwidth) * 4] = newstorage[(x + y * newwidth) * 4];
+            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 1] = newstorage[(x + y * newwidth) * 4 + 1];
+            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 2] = newstorage[(x + y * newwidth) * 4 + 2];
+            tmpstorage[(newheight - y - 1 + x * newwidth) * 4 + 3] = newstorage[(x + y * newwidth) * 4 + 3];
           }
         }
-        this.storage = newstorage;
-        tmp = this.width;
-        this.width = this.height;
-        _results.push(this.height = tmp);
+        newstorage = (function() {
+          var _l, _len, _results;
+          _results = [];
+          for (_l = 0, _len = tmpstorage.length; _l < _len; _l++) {
+            x = tmpstorage[_l];
+            _results.push(x);
+          }
+          return _results;
+        })();
+        tmp = newwidth;
+        newwidth = newheight;
+        newheight = tmp;
       }
-      return _results;
+      deltaX = Math.floor(this.width / 2 - newwidth / 2);
+      deltaY = Math.floor(this.height / 2 - newheight / 2);
+      collide = Tetrus.get('controllers.game').game.collide;
+      if (!collide(newstorage, this.position.x + deltaX, this.position.y + deltaY)) {
+        this.storage = newstorage;
+        this.position.x += deltaX;
+        return this.position.y += deltaY;
+      } else {
+        radius = 2;
+        for (dy = _l = -radius; _l >= 0; dy = _l += -1) {
+          for (dx = _m = 1; _m <= radius; dx = _m += 1) {
+            if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY - dy)) {
+              this.storage = newstorage;
+              this.position.x += deltaX + dx;
+              this.position.y += deltaY - dy;
+              return;
+            }
+            if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY - dy)) {
+              this.storage = newstorage;
+              this.position.x += deltaX - dx;
+              this.position.y += deltaY - dy;
+              return;
+            }
+            if (dy !== 0) {
+              if (!collide(newstorage, this.position.x + deltaX + dx, this.position.y + deltaY + dy)) {
+                this.storage = newstorage;
+                this.position.x += deltaX + dx;
+                this.position.y += deltaY + dy;
+                return;
+              }
+              if (!collide(newstorage, this.position.x + deltaX - dx, this.position.y + deltaY + dy)) {
+                this.storage = newstorage;
+                this.position.x += deltaX - dx;
+                this.position.y += deltaY + dy;
+                return;
+              }
+            }
+          }
+        }
+      }
     };
 
     Piece.prototype.apply = function(piece) {
@@ -438,9 +496,9 @@
       delete this.peerConnection;
       Batman.DOM.removeEventListener(document, 'keydown', this.keydown);
       Batman.DOM.removeEventListener(document, 'keyup', this.keydown);
-      if (this._onMessage) {
-        Tetrus.off('socket:message', this._onMessage);
-        delete this._onMessage;
+      if (this._onServerMessage) {
+        Tetrus.off('socket:message', this._onServerMessage);
+        delete this._onServerMessage;
       }
       Tetrus.conn.sendJSON({
         command: 'game:end'
@@ -486,7 +544,6 @@
     };
 
     GameController.prototype.send = function(message) {
-      console.log(message);
       return this.peerChannel.send(JSON.stringify(message));
     };
 
@@ -516,7 +573,7 @@
     GameController.prototype._setKey = function(keyCode, pressed) {
       var repeat,
         _this = this;
-      switch (event.keyCode) {
+      switch (keyCode) {
         case 37:
           if (pressed) {
             repeat = function() {
@@ -641,7 +698,7 @@
           });
         }, null, null);
       }
-      return Tetrus.on('socket:message', this._onMessage = function(message) {
+      return Tetrus.on('socket:message', this._onServerMessage = function(message) {
         var candidate, setRemoteDescription, _i, _len;
         setRemoteDescription = function() {
           var description;

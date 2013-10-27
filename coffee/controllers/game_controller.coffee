@@ -24,9 +24,9 @@ class Tetrus.GameController extends Batman.Controller
     Batman.DOM.removeEventListener(document, 'keydown', @keydown)
     Batman.DOM.removeEventListener(document, 'keyup', @keydown)
 
-    if @_onMessage
-      Tetrus.off 'socket:message', @_onMessage
-      delete @_onMessage
+    if @_onServerMessage
+      Tetrus.off 'socket:message', @_onServerMessage
+      delete @_onServerMessage
 
     Tetrus.conn.sendJSON(command: 'game:end')
     Batman.redirect('/lobby')
@@ -57,7 +57,6 @@ class Tetrus.GameController extends Batman.Controller
         @disconnect()
 
   send: (message) ->
-    console.log message
     @peerChannel.send(JSON.stringify(message))
 
   pollForTimeout: ->
@@ -77,7 +76,7 @@ class Tetrus.GameController extends Batman.Controller
     check()
 
   _setKey: (keyCode, pressed) ->
-    switch event.keyCode
+    switch keyCode
       when 37
         if pressed
           repeat = =>
@@ -167,7 +166,7 @@ class Tetrus.GameController extends Batman.Controller
         Tetrus.conn.sendJSON(command: 'peer:offer', description: description, username: @peer.get('username'))
       , null, null
 
-    Tetrus.on 'socket:message', @_onMessage = (message) =>
+    Tetrus.on 'socket:message', @_onServerMessage = (message) =>
       setRemoteDescription = =>
         description = new RTCSessionDescription(message.description)
         @peerConnection.setRemoteDescription(description)
