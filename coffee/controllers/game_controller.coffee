@@ -76,8 +76,6 @@ class Tetrus.GameController extends Batman.Controller
     switch event.keyCode
       when 37
         @keys.left = pressed
-      when 38
-        @keys.up = pressed
       when 39
         @keys.right = pressed
       when 40
@@ -85,7 +83,14 @@ class Tetrus.GameController extends Batman.Controller
       when 32
         @keys.space = pressed
 
-  keydown: (event) => @_setKey(event.keyCode, true)
+  keydown: (event) =>
+    @_setKey(event.keyCode, true)
+    switch event.keyCode
+      when 88 # x
+        @game.player.piece.rotate(1)
+      when 90 # z
+        @game.player.piece.rotate(3)
+
   keyup: (event) => @_setKey(event.keyCode, false)
 
   _bindPeerChannel: (channel) ->

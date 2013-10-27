@@ -214,12 +214,26 @@
 
   Tetrus.Game = (function() {
     function Game() {
+      this.fallLoop = __bind(this.fallLoop, this);
       this.board = new Tetrus.Board;
       this.player = new Tetrus.Player;
       this.peer = new Tetrus.Player;
       this.score = 0;
-      this.speed = 7;
+      this.speed = 750;
     }
+
+    Game.prototype.loop = function() {};
+
+    Game.prototype.fallLoop = function() {
+      this.player.piece.y++;
+      this.collide();
+      return setTimeout(fallLoop, this.speed);
+    };
+
+    Game.prototype.collide = function() {
+      var x, y, _ref1;
+      return _ref1 = this.player.piece.position, x = _ref1.x, y = _ref1.y, _ref1;
+    };
 
     return Game;
 
@@ -409,8 +423,6 @@
       switch (event.keyCode) {
         case 37:
           return this.keys.left = pressed;
-        case 38:
-          return this.keys.up = pressed;
         case 39:
           return this.keys.right = pressed;
         case 40:
@@ -421,7 +433,13 @@
     };
 
     GameController.prototype.keydown = function(event) {
-      return this._setKey(event.keyCode, true);
+      this._setKey(event.keyCode, true);
+      switch (event.keyCode) {
+        case 88:
+          return this.game.player.piece.rotate(1);
+        case 90:
+          return this.game.player.piece.rotate(3);
+      }
     };
 
     GameController.prototype.keyup = function(event) {
