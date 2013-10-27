@@ -81,24 +81,26 @@ class Tetrus.GameController extends Batman.Controller
         if pressed
           repeat = =>
             if @keys.left
-              @game.player.piece.move(-1)
+              @game.move(-1)
               @keys.lr = setTimeout(repeat, 100)
           @keys.lr = setTimeout(repeat, 150)
-          @game.player.piece.move(-1)
+          @game.move(-1)
         else
           clearTimeout(@keys.lr)
         @keys.left = pressed
+        return true
       when 39
         if pressed
           repeat = =>
             if @keys.right
-              @game.player.piece.move(1)
+              @game.move(1)
               @keys.rr = setTimeout(repeat, 100)
           @keys.rr = setTimeout(repeat, 150)
-          @game.player.piece.move(1)
+          @game.move(1)
         else
           clearTimeout(@keys.rr)
         @keys.right = pressed
+        return true
       when 40
         if pressed
           repeat = =>
@@ -110,19 +112,25 @@ class Tetrus.GameController extends Batman.Controller
         else
           clearTimeout(@keys.dr)
         @keys.down = pressed
+        return true
       when 32
         @keys.space = pressed
+        return true
 
   keydown: (event) =>
-    @_setKey(event.keyCode, true)
+    if @_setKey(event.keyCode, true)
+      event.preventDefault()
     switch event.keyCode
       when 88 # x
         @game.player.piece.rotate(1)
+        event.preventDefault()
       when 90 # z
         @game.player.piece.rotate(3)
+        event.preventDefault()
 
   keyup: (event) =>
-    @_setKey(event.keyCode, false)
+    if @_setKey(event.keyCode, false)
+      event.preventDefault()
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel

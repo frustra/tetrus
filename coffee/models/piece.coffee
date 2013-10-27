@@ -74,7 +74,7 @@ class Tetrus.Piece
     deltaX = Math.floor(@width / 2 - newwidth / 2)
     deltaY = Math.floor(@height / 2 - newheight / 2)
 
-    collide = Tetrus.get('controllers.game').game.collide
+    collide = -> Tetrus.get('controllers.game').game.collide(arguments...)
 
     unless collide(newstorage, @position.x + deltaX, @position.y + deltaY)
       @storage = newstorage

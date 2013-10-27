@@ -217,7 +217,7 @@
       this.fallLoop = __bind(this.fallLoop, this);
       this.board = new Tetrus.Board;
       this.player = new Tetrus.Player;
-      this.peer = new Tetrus.Player;
+      this.peer = new Tetrus.Player(true);
       this.score = 0;
       this.speed = 750;
     }
@@ -244,7 +244,8 @@
 
     Game.prototype.collide = function() {
       var x, y, _ref1;
-      return _ref1 = this.player.piece.position, x = _ref1.x, y = _ref1.y, _ref1;
+      _ref1 = this.player.piece.position, x = _ref1.x, y = _ref1.y;
+      return false;
     };
 
     return Game;
@@ -394,7 +395,10 @@
       }
       deltaX = Math.floor(this.width / 2 - newwidth / 2);
       deltaY = Math.floor(this.height / 2 - newheight / 2);
-      collide = Tetrus.get('controllers.game').game.collide;
+      collide = function() {
+        var _ref2;
+        return (_ref2 = Tetrus.get('controllers.game').game).collide.apply(_ref2, arguments);
+      };
       if (!collide(newstorage, this.position.x + deltaX, this.position.y + deltaY)) {
         this.storage = newstorage;
         this.position.x += deltaX;
@@ -578,30 +582,32 @@
           if (pressed) {
             repeat = function() {
               if (_this.keys.left) {
-                _this.game.player.piece.move(-1);
+                _this.game.move(-1);
                 return _this.keys.lr = setTimeout(repeat, 100);
               }
             };
             this.keys.lr = setTimeout(repeat, 150);
-            this.game.player.piece.move(-1);
+            this.game.move(-1);
           } else {
             clearTimeout(this.keys.lr);
           }
-          return this.keys.left = pressed;
+          this.keys.left = pressed;
+          return true;
         case 39:
           if (pressed) {
             repeat = function() {
               if (_this.keys.right) {
-                _this.game.player.piece.move(1);
+                _this.game.move(1);
                 return _this.keys.rr = setTimeout(repeat, 100);
               }
             };
             this.keys.rr = setTimeout(repeat, 150);
-            this.game.player.piece.move(1);
+            this.game.move(1);
           } else {
             clearTimeout(this.keys.rr);
           }
-          return this.keys.right = pressed;
+          this.keys.right = pressed;
+          return true;
         case 40:
           if (pressed) {
             repeat = function() {
@@ -615,24 +621,32 @@
           } else {
             clearTimeout(this.keys.dr);
           }
-          return this.keys.down = pressed;
+          this.keys.down = pressed;
+          return true;
         case 32:
-          return this.keys.space = pressed;
+          this.keys.space = pressed;
+          return true;
       }
     };
 
     GameController.prototype.keydown = function(event) {
-      this._setKey(event.keyCode, true);
+      if (this._setKey(event.keyCode, true)) {
+        event.preventDefault();
+      }
       switch (event.keyCode) {
         case 88:
-          return this.game.player.piece.rotate(1);
+          this.game.player.piece.rotate(1);
+          return event.preventDefault();
         case 90:
-          return this.game.player.piece.rotate(3);
+          this.game.player.piece.rotate(3);
+          return event.preventDefault();
       }
     };
 
     GameController.prototype.keyup = function(event) {
-      return this._setKey(event.keyCode, false);
+      if (this._setKey(event.keyCode, false)) {
+        return event.preventDefault();
+      }
     };
 
     GameController.prototype._bindPeerChannel = function(channel) {

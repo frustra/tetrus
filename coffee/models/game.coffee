@@ -2,7 +2,7 @@ class Tetrus.Game
   constructor: ->
     @board = new Tetrus.Board
     @player = new Tetrus.Player
-    @peer = new Tetrus.Player
+    @peer = new Tetrus.Player(true)
     @score = 0
     @speed = 750
 
@@ -23,4 +23,5 @@ class Tetrus.Game
 
   collide: ->
     {x, y} = @player.piece.position
+    false
 
