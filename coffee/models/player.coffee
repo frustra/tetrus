@@ -1,0 +1,2 @@
+class Tetrus.Player
+
