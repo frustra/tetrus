@@ -17,6 +17,7 @@ class Tetrus.Game
         storage[i] = 200
       else
         storage[i] = 0
+
     ctrl.send(type: 'piece', piece: { storage: storage, position: piece.position, width: piece.width, height: piece.height })
 
     setTimeout(@loop, 50)

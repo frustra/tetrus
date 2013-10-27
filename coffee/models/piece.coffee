@@ -94,6 +94,7 @@ class Tetrus.Piece
             @height = newheight
             @position.x += deltaX + dx
             @position.y += deltaY + dy
+            return
 
           unless collide(newstorage, @position.x + deltaX + dx, @position.y + deltaY - dy, newwidth, newheight)
             return setStorage(dx, -dy)
