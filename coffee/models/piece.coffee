@@ -54,7 +54,7 @@ class Tetrus.Piece extends Batman.Object
       @width = piece[0].length
       @centerX = (@width - 1) / 2
       @centerY = (@height - 1) / 2
-      if @width == 3
+      if @width >= 3
         @centerX = Math.floor(@centerX)
         @centerY = Math.ceil(@centerY)
 

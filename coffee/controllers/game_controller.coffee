@@ -115,20 +115,8 @@ class Tetrus.GameController extends Batman.Controller
 
     check()
 
-  _setKey: (keyCode, pressed) ->
-    switch keyCode
-      when 37 then @game.keys.left(pressed)
-      when 39 then @game.keys.right(pressed)
-      when 40 then @game.keys.down(pressed)
-      when 32 then @game.keys.space(pressed)
-      when 88 then @game.keys.x(pressed)
-      when 90 then @game.keys.z(pressed)
-      when 38
-      else return true
-    return false
-
-  keydown: (event) => event.preventDefault() unless @_setKey(event.keyCode, true)
-  keyup: (event) => event.preventDefault() unless @_setKey(event.keyCode, false)
+  keydown: (event) => event.preventDefault() unless @game.keys.keyEvent(event.keyCode, true)
+  keyup: (event) => event.preventDefault() unless @game.keys.keyEvent(event.keyCode, false)
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel

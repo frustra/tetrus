@@ -2,6 +2,7 @@ class Tetrus.Game extends Batman.Object
   constructor: ->
     @keys = new Tetrus.KeyHandler(this)
     @running = false
+    @keyTimer = 0
 
   create: ->
     @board = new Tetrus.Board
@@ -13,17 +14,26 @@ class Tetrus.Game extends Batman.Object
   start: ->
     @running = true
     @fallLoop()
-    @loop()
+    @dropLoop()
+    @moveLoop()
 
   stop: ->
     if @running
       @running = false
       @fire('game:over')
 
-  loop: =>
+  dropLoop: =>
     return unless @running
     @fall() if @dropping
-    setTimeout(@loop, @speed / 15)
+    setTimeout(@dropLoop, @speed / 15)
+
+  moveLoop: =>
+    return unless @running
+    if Date.now() - @keyTimer > 75
+      @player.piece.move(-1, 0, @board) if @keys.states.left
+      @player.piece.move(1, 0, @board) if @keys.states.right
+      @keyTimer = Date.now()
+    setTimeout(@moveLoop, 15)
 
   fall: ->
     unless @player.piece.move(0, 1, @board)

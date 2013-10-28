@@ -5,12 +5,13 @@ class Tetrus.GamePlayView extends Batman.View
     @fpscounter = 0
     @blockSize = 25
 
-    setInterval =>
-      @set('fps', @fpscounter)
-      @fpscounter = 0
-    , 1000
-
     @shaders = {}
+
+  fpsTimer: ->
+    return unless @controller.game.running
+    @set('fps', @fpscounter)
+    @fpscounter = 0
+    setTimeout @fpsTimer, 1000
 
   render: ->
     gl = @gl
@@ -45,6 +46,7 @@ class Tetrus.GamePlayView extends Batman.View
 
     @controller.game.once 'game:ready', =>
       @startRendering()
+      @fpsTimer()
 
   startRendering: ->
     Batman.developer.log("Initializing renderer")
