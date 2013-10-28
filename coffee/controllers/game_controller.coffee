@@ -5,7 +5,7 @@ class Tetrus.GameController extends Batman.Controller
     super
     @iceServers = ['stun:stun.l.google.com:19302']
     @connectionParams = [
-      { RtpDataChannels: true }
+      #{ RtpDataChannels: true }
       { DtlsSrtpKeyAgreement: true }
     ]
 

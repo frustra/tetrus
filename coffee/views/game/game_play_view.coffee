@@ -12,7 +12,6 @@ class Tetrus.GamePlayView extends Batman.View
 
     @shaders = {}
 
-
   render: ->
     gl = @gl
 
@@ -40,10 +39,15 @@ class Tetrus.GamePlayView extends Batman.View
     @fpscounter++
 
   viewDidAppear: ->
+    # this is getting called twice for some reason
+    return if @_attachedHandler
+    @_attachedHandler = true
+
     @controller.game.once 'game:ready', =>
       @startRendering()
 
   startRendering: ->
+    Batman.developer.log("Initializing renderer")
     canvas = $("#glcanvas")[0]
 
     try
@@ -293,8 +297,8 @@ class Tetrus.GamePlayView extends Batman.View
 
     for name of shaderList
       do (name) ->
-        options =
+        new Batman.Request
           url: shaderList[name].url
           success: (data) ->
             completeCallback(name, data)
-        new Batman.Request(options).send()
+
