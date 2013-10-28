@@ -37,7 +37,7 @@ pieces = [
   ]
 ]
 
-class Tetrus.Piece
+class Tetrus.Piece extends Batman.Object
   @playerAlpha = 255
   @peerAlpha = 200
 
@@ -63,7 +63,14 @@ class Tetrus.Piece
           @storage[offset + 2] = b
           @storage[offset + 3] = (if piece[y][x] then alpha else 0)
 
-  rotate: (times) ->
+  move: (dx, dy, board) ->
+    unless board.collide(@storage, @position.x + dx, @position.y + dy, @width, @height)
+      @position.x += dx
+      @position.y += dy
+      @fire('move')
+      true
+
+  rotate: (times, board) ->
     storage = (x for x in @storage)
     width = @width
     height = @height
@@ -86,35 +93,45 @@ class Tetrus.Piece
     deltaX = @width - width
     deltaY = 0 # Math.floor(height / 2 - @height / 2)
 
-    game = Tetrus.get('controllers.game').game
-
-    setStorage = (dx, dy) =>
+    commit = (dx, dy) =>
       @storage = storage
       @width = width
       @height = height
       @position.x += deltaX + dx
       @position.y += deltaY + dy
+      @fire('change')
 
-    unless game.collide(storage, @position.x + deltaX, @position.y + deltaY, width, height)
-      setStorage(0, 0)
+    unless board.collide(storage, @position.x + deltaX, @position.y + deltaY, width, height)
+      commit(0, 0)
     else
       radius = 2
       for dy in [0..radius] by 1
         for dx in [0..radius] by 1
           continue if dx == 0 and dy == 0
-          unless game.collide(storage, @position.x + deltaX + dx, @position.y + deltaY - dy, width, height)
-            return setStorage(dx, -dy)
-          unless game.collide(storage, @position.x + deltaX - dx, @position.y + deltaY - dy, width, height)
-            return setStorage(-dx, -dy)
+          unless board.collide(storage, @position.x + deltaX + dx, @position.y + deltaY - dy, width, height)
+            return commit(dx, -dy)
+          unless board.collide(storage, @position.x + deltaX - dx, @position.y + deltaY - dy, width, height)
+            return commit(-dx, -dy)
           unless dy == 0
-            unless game.collide(storage, @position.x + deltaX + dx, @position.y + deltaY + dy, width, height)
-              return setStorage(dx, dy)
-            unless game.collide(storage, @position.x + deltaX - dx, @position.y + deltaY + dy, width, height)
-              return setStorage(-dx, dy)
+            unless board.collide(storage, @position.x + deltaX + dx, @position.y + deltaY + dy, width, height)
+              return commit(dx, dy)
+            unless board.collide(storage, @position.x + deltaX - dx, @position.y + deltaY + dy, width, height)
+              return commit(-dx, dy)
 
   apply: (piece) ->
     @storage = piece.storage
     @position = piece.position
     @width = piece.width
     @height = piece.height
+
+  storageWithAlpha: (alpha) ->
+    storage = new Array(@storage.length)
+    for val, i in @storage
+      storage[i] = if i % 4 != 3
+        val
+      else if val != 0
+        alpha
+      else
+        0
+    storage
 

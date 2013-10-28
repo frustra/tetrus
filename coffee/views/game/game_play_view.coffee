@@ -40,6 +40,10 @@ class Tetrus.GamePlayView extends Batman.View
     @fpscounter++
 
   viewDidAppear: ->
+    @controller.game.once 'game:ready', =>
+      @startRendering()
+
+  startRendering: ->
     canvas = $("#glcanvas")[0]
 
     try

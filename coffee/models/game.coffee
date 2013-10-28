@@ -1,68 +1,50 @@
-class Tetrus.Game
+class Tetrus.Game extends Batman.Object
   constructor: ->
+    @keys = new Tetrus.KeyHandler(this)
+    @running = false
+
+  create: ->
     @board = new Tetrus.Board
     @player = new Tetrus.Player
-    @peer = new Tetrus.Player(true)
+    @peer = new Tetrus.PeerPlayer
     @score = 0
     @speed = 750
 
+  start: ->
+    @running = true
+    @fallLoop()
+    @loop()
+
+  stop: ->
+    if @running
+      @running = false
+      @fire('game:over')
+
   loop: =>
-    ctrl = Tetrus.get('controllers.game')
-    return unless ctrl.playing
-
-    piece = @player.piece
-    storage = new Array(piece.storage.length)
-    for val, i in piece.storage
-      if i % 4 != 3
-        storage[i] = val
-      else if val != 0
-        storage[i] = Tetrus.Piece.peerAlpha
-      else
-        storage[i] = 0
-
-    ctrl.send(type: 'piece', piece: { storage: storage, position: piece.position, width: piece.width, height: piece.height })
-
-    setTimeout(@loop, 50)
+    return unless @running
+    @keys.process()
+    setTimeout(@loop, 20)
 
   fall: ->
-    pos = @player.piece.position
-    unless @collide(@player.piece.storage, pos.x, pos.y + 1, @player.piece.width, @player.piece.height)
-      pos.y++
-    else
+    unless @player.piece.move(0, 1, @board)
       @placePiece(@player.piece)
       @player.setNextPiece()
 
   fallLoop: =>
-    ctrl = Tetrus.get('controllers.game')
-    return unless ctrl.playing
-
+    return unless @running
     @fall()
     setTimeout(@fallLoop, @speed)
 
-  move: (dx) ->
-    pos = @player.piece.position
-    unless @collide(@player.piece.storage, pos.x + dx, pos.y, @player.piece.width, @player.piece.height)
-      pos.x += dx
-
   placePiece: (piece) ->
-    ctrl = Tetrus.get('controllers.game')
-
     if piece.position.y <= 0
       Tetrus.Flash.message("Game Over")
-      ctrl.stop()
+      @stop()
       return
 
-    for x in [0...piece.width] by 1
-      for y in [0...piece.height] by 1
-        if piece.storage[(x + y * piece.width) * 4 + 3] > 0
-          @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4] = piece.storage[(x + y * piece.width) * 4]
-          @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 1] = piece.storage[(x + y * piece.width) * 4 + 1]
-          @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 2] = piece.storage[(x + y * piece.width) * 4 + 2]
-          @board.storage[(piece.position.x + x + (piece.position.y + y) * @board.width) * 4 + 3] = 255
-
+    @board.place(piece)
     @clearLines()
 
-    ctrl.send(type: 'board', board: { storage: @board.storage })
+    @fire('piece:place')
 
   clearLines: ->
     for y in [0...@board.height] by 1
@@ -71,13 +53,4 @@ class Tetrus.Game
         all-- if @board.storage[(x + y * @board.width) * 4 + 3] > 0
       if all == 0
         @board.removeLine(y)
-
-  collide: (storage, x, y, width, height) ->
-    if x < 0 or y < 0 or x + (width - 1) >= @board.width or y + (height - 1) >= @board.height
-      return true
-    for dx in [0...width] by 1
-      for dy in [0...height] by 1
-        if storage[(dx + dy * width) * 4 + 3] > 0
-          return true if @board.storage[(x + dx + (y + dy) * @board.width) * 4 + 3] > 0
-    false
 

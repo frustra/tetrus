@@ -9,16 +9,34 @@ class Tetrus.GameController extends Batman.Controller
 
   start: ->
     @pollForTimeout()
-    @playing = true
-    @game.loop()
-    @game.fallLoop()
+    @game.create()
 
-    @keys = {}
+    @game.player.on 'piece:change', =>
+      piece = @game.player.piece
+      storage = piece.storageWithAlpha(Tetrus.Piece.peerAlpha)
+      @send(type: 'piece:update', piece: { storage: storage, position: piece.position, width: piece.width, height: piece.height })
+
+    @game.player.on 'piece:move', =>
+      @send(type: 'piece:move', piece: { position: @game.player.piece.position })
+
+    @game.on 'piece:place', =>
+      if @isServer
+        @send(type: 'board:update', board: { storage: @game.board.storage })
+      else
+        piece = @game.player.piece
+        @send(type: 'piece:place', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
+
+    @game.on 'game:over', => @stop()
+
     Batman.DOM.addEventListener(document, 'keydown', @keydown)
     Batman.DOM.addEventListener(document, 'keyup', @keyup)
 
+    @game.player.setNextPiece()
+    @game.fire('game:ready')
+    @game.start()
+
   stop: ->
-    @playing = false
+    @game.stop()
 
     Batman.DOM.removeEventListener(document, 'keydown', @keydown)
     Batman.DOM.removeEventListener(document, 'keyup', @keydown)
@@ -47,10 +65,16 @@ class Tetrus.GameController extends Batman.Controller
         @send(type: 'pong', timeStamp: event.timeStamp)
       when "pong"
         @set('rtt', event.timeStamp - message.timeStamp)
-      when "board"
+      when "board:update"
         @game.board.apply(message.board)
-      when "piece"
+      when "piece:update"
         @game.peer.piece.apply(message.piece)
+      when "piece:move"
+        @game.peer.piece.position = message.piece.position
+      when "piece:place"
+        piece = new Tetrus.Piece
+        piece.apply(message.piece)
+        @game.placePiece(piece)
       when "score"
         @game.speed += message.deltaSpeed
         @game.score += message.deltaScore
@@ -83,62 +107,17 @@ class Tetrus.GameController extends Batman.Controller
 
   _setKey: (keyCode, pressed) ->
     switch keyCode
-      when 37
-        if pressed
-          repeat = =>
-            if @keys.left
-              @game.move(-1)
-              @keys.lr = setTimeout(repeat, 100)
-          @keys.lr = setTimeout(repeat, 150)
-          @game.move(-1)
-        else
-          clearTimeout(@keys.lr)
-        @keys.left = pressed
-        return true
+      when 37 then @game.keys.left(pressed)
+      when 39 then @game.keys.right(pressed)
+      when 40 then @game.keys.down(pressed)
+      when 32 then @game.keys.space(pressed)
+      when 88 then @game.keys.x(pressed)
+      when 90 then @game.keys.z(pressed)
       when 38
-        return true
-      when 39
-        if pressed
-          repeat = =>
-            if @keys.right
-              @game.move(1)
-              @keys.rr = setTimeout(repeat, 100)
-          @keys.rr = setTimeout(repeat, 150)
-          @game.move(1)
-        else
-          clearTimeout(@keys.rr)
-        @keys.right = pressed
-        return true
-      when 40
-        if pressed
-          repeat = =>
-            if @keys.down
-              @game.fall()
-              @keys.dr = setTimeout(repeat, 100)
-          @keys.dr = setTimeout(repeat, 150)
-          @game.fall()
-        else
-          clearTimeout(@keys.dr)
-        @keys.down = pressed
-        return true
-      when 32
-        @keys.space = pressed
-        return true
+      else return true
 
-  keydown: (event) =>
-    if @_setKey(event.keyCode, true)
-      event.preventDefault()
-    switch event.keyCode
-      when 88 # x
-        @game.player.piece.rotate(1)
-        event.preventDefault()
-      when 90 # z
-        @game.player.piece.rotate(3)
-        event.preventDefault()
-
-  keyup: (event) =>
-    if @_setKey(event.keyCode, false)
-      event.preventDefault()
+  keydown: (event) => event.preventDefault() unless @_setKey(event.keyCode, true)
+  keyup: (event) => event.preventDefault() unless @_setKey(event.keyCode, false)
 
   _bindPeerChannel: (channel) ->
     @peerChannel = channel

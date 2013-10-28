@@ -27,6 +27,29 @@ class Tetrus.Board
         @storage[i] = 0
     return
 
+  collide: (storage, x, y, width, height) ->
+    if x < 0 or y < 0 or x + (width - 1) >= @width or y + (height - 1) >= @height
+      return true
+
+    for dx in [0...width] by 1
+      for dy in [0...height] by 1
+        if storage[(dx + dy * width) * 4 + 3] > 0
+          return true if @storage[(x + dx + (y + dy) * @width) * 4 + 3] > 0
+
+    return false
+
+  place: (piece) ->
+    for x in [0...piece.width] by 1
+      for y in [0...piece.height] by 1
+        if piece.storage[(x + y * piece.width) * 4 + 3] > 0
+          targetOffset = (piece.position.x + x + (piece.position.y + y) * @width) * 4
+          sourceOffset = (x + y * piece.width) * 4
+          @storage[targetOffset] = piece.storage[sourceOffset]
+          @storage[targetOffset + 1] = piece.storage[sourceOffset + 1]
+          @storage[targetOffset + 2] = piece.storage[sourceOffset + 2]
+          @storage[targetOffset + 3] = 255
+
+    return
 
   apply: (board) ->
     @storage = board.storage
