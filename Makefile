@@ -8,7 +8,7 @@ libs = polyfills,jquery-*,glmatrix-*,webrtc-*,batman,batman.jquery
 production: install-dependencies assets server
 assets: css js manifest
 
-server: *.go server/*.go
+compile-server:
 	go build
 
 install-dependencies:
@@ -30,7 +30,7 @@ css:
 
 dev-assets: clean-manifest dev-css dev-js
 
-dev-server: server
+dev-server: compile-server
 	./tetrus -debug
 
 dev-js:

@@ -9,8 +9,8 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -21,8 +21,8 @@ type Server struct {
 	listener net.Listener
 	Players  map[string]*Player
 
-	Root string
-	Debug bool
+	Root         string
+	Debug        bool
 	LayoutBuffer []byte
 
 	http.Server
@@ -34,7 +34,8 @@ type Conn struct {
 
 type Player struct {
 	conn     *Conn
-	username string
+	Username string `json:"username"`
+	Browser  string `json:"browser"`
 
 	peer *Player
 }
@@ -42,7 +43,7 @@ type Player struct {
 func New(port int, debug bool) (*Server, error) {
 	s := &Server{
 		Players: make(map[string]*Player),
-		Debug: debug,
+		Debug:   debug,
 		Server: http.Server{
 			Addr: ":" + strconv.Itoa(port),
 		},
@@ -89,6 +90,26 @@ func (conn *Conn) SendError(err string) {
 	conn.Close()
 }
 
+func (s *Server) ParseBrowser(r *http.Request) string {
+	browsers, browserExists := r.Form["browser"]
+	versions, versionExists := r.Form["version"]
+	if !browserExists || !versionExists || len(browsers) != 1 || len(versions) != 1 {
+		return ""
+	}
+	browser := browsers[0]
+	version, _ := strconv.Atoi(versions[0])
+	if browser == "chrome" {
+		if version >= 23 {
+			return "Chrome"
+		}
+	} else if browser == "firefox" {
+		if version >= 22 {
+			return "Firefox"
+		}
+	}
+	return ""
+}
+
 func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
@@ -114,23 +135,29 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	}
 	username := usernames[0]
 
+	browser := s.ParseBrowser(r)
+	if browser == "" {
+		conn.SendError("browser does not support webrtc")
+		return
+	}
+
 	_, exists = s.Players[username]
 	if exists {
 		conn.SendError("username already in use")
 		return
 	}
 
-	p := &Player{conn: conn, username: username}
+	p := &Player{conn: conn, Username: username, Browser: browser}
 
 	for _, player := range s.Players {
-		player.conn.Send(Map{"type": "player:joined", "player": Map{"username": p.username}})
+		player.conn.Send(Map{"type": "player:joined", "player": p})
 	}
 
 	s.Players[username] = p
 	conn.Send(Map{"type": "connected"})
 
 	if s.Debug {
-		log.Println("Player", username, "connected")
+		log.Println("Player", username, "connected using", browser)
 	}
 	defer func() {
 		if p.peer != nil {
@@ -139,7 +166,7 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 		}
 		delete(s.Players, username)
 		for _, player := range s.Players {
-			player.conn.Send(Map{"type": "player:left", "player": Map{"username": p.username}})
+			player.conn.Send(Map{"type": "player:left", "player": p})
 		}
 		if s.Debug {
 			log.Println("Player", username, "disconnected")
@@ -168,7 +195,7 @@ func (s *Server) HandleMessage(source *Player, message Map) error {
 	case "fetch":
 		for _, player := range s.Players {
 			if player != source {
-				source.conn.Send(Map{"type": "player:joined", "player": Map{"username": player.username}})
+				source.conn.Send(Map{"type": "player:joined", "player": player})
 			}
 		}
 	case "invite:send":
@@ -237,7 +264,7 @@ func (s *Server) RelayInviteCommand(command string, source *Player, message Map)
 	targetName := message["username"]
 	if targetName, ok := targetName.(string); ok {
 		target := s.Players[targetName]
-		target.conn.Send(Map{"type": command, "invite": Map{"username": source.username}})
+		target.conn.Send(Map{"type": command, "invite": Map{"username": source.Username}})
 	} else {
 		source.conn.SendError("invalid peer")
 	}

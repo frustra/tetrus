@@ -1,6 +1,14 @@
 class Tetrus.GameController extends Batman.Controller
   routingKey: 'game'
 
+  constructor: ->
+    super
+    @iceServers = ['stun:stun.l.google.com:19302']
+    @connectionParams = [
+      { RtpDataChannels: true }
+      { DtlsSrtpKeyAgreement: true }
+    ]
+
   play: ->
     @peer = new Tetrus.Peer(Tetrus.get('peer'))
     @game = new Tetrus.Game
@@ -140,7 +148,8 @@ class Tetrus.GameController extends Batman.Controller
     @set('connecting', true)
     @set('connected', false)
 
-    @peerConnection = new RTCPeerConnection({iceServers: [url: 'stun:stun.l.google.com:19302']}, null)#{optional: [RtpDataChannels: true]})
+    iceServers = ({ url: x } for x in @iceServers)
+    @peerConnection = new RTCPeerConnection({iceServers}, {optional: @connectionParams})
     candidates = []
 
     @peerConnection.onicecandidate = (event) =>
@@ -165,32 +174,34 @@ class Tetrus.GameController extends Batman.Controller
         @peerConnection.setRemoteDescription(description)
         Batman.developer.log("remote sdp", description.sdp)
 
+      if @connecting
+        switch message.type
+          when "peer:offer"
+            setRemoteDescription()
+
+            @peerConnection.createAnswer (description) =>
+              @peerConnection.setLocalDescription(description)
+              Batman.developer.log("local sdp", description.sdp)
+              Tetrus.conn.sendJSON(command: 'peer:answer', description: description)
+            , null, null
+
+          when "peer:answer"
+            setRemoteDescription()
+            Tetrus.conn.sendJSON(command: 'peer:handshake')
+
+          when "peer:handshake:complete"
+            candidates.push = (candidate) ->
+              Tetrus.conn.sendJSON(command: 'peer:candidate', candidate: candidate)
+
+            candidates.push(candidate) for candidate in candidates
+            candidates.length = 0
+
+          when "peer:candidate"
+            candidate = new RTCIceCandidate(message.candidate)
+            @peerConnection.addIceCandidate(candidate)
+            Batman.developer.log("remote candidate", candidate.candidate)
+
       switch message.type
-        when "peer:offer"
-          setRemoteDescription()
-
-          @peerConnection.createAnswer (description) =>
-            @peerConnection.setLocalDescription(description)
-            Batman.developer.log("local sdp", description.sdp)
-            Tetrus.conn.sendJSON(command: 'peer:answer', description: description)
-          , null, null
-
-        when "peer:answer"
-          setRemoteDescription()
-          Tetrus.conn.sendJSON(command: 'peer:handshake')
-
-        when "peer:handshake:complete"
-          candidates.push = (candidate) ->
-            Tetrus.conn.sendJSON(command: 'peer:candidate', candidate: candidate)
-
-          candidates.push(candidate) for candidate in candidates
-          candidates.length = 0
-
-        when "peer:candidate"
-          candidate = new RTCIceCandidate(message.candidate)
-          @peerConnection.addIceCandidate(candidate)
-          Batman.developer.log("remote candidate", candidate.candidate)
-
         when "game:ended"
           if message.reason
             Tetrus.Flash.message(message.reason)

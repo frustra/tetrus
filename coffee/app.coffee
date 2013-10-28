@@ -37,7 +37,7 @@ class window.Tetrus extends Batman.App
     @off('socket:message')
 
   @setup: (ready) ->
-    @conn = new WebSocket("ws://#{@get('hostAddr')}/play_socket?username=#{encodeURIComponent(@get('username'))}")
+    @conn = new WebSocket("ws://#{@get('hostAddr')}/play_socket?username=#{encodeURIComponent(@get('username'))}&browser=#{webrtcDetectedBrowser}&version=#{webrtcDetectedVersion}")
 
     Batman.mixin @conn,
       sendJSON: (obj) ->

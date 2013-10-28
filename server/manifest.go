@@ -5,12 +5,12 @@
 package server
 
 import (
-	"io/ioutil"
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"text/template"
-	"bytes"
 )
 
 func (s *Server) LoadManifest() {
