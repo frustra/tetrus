@@ -3,6 +3,7 @@ class Tetrus.Board
     @width = 10
     @height = 20
     @storage = new Array(@width * @height * 4)
+    @storage[i] = 0 for x, i in @storage
 
   get: (x, y) ->
     offset = (x + y * @width) * 4

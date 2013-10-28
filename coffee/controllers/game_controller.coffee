@@ -34,7 +34,9 @@ class Tetrus.GameController extends Batman.Controller
         piece = @game.player.piece
         @send(type: 'piece:place', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
 
-    @game.on 'game:over', => @stop()
+    @game.on 'game:over', =>
+      @stop()
+      setTimeout(@disconnect, 5000)
 
     $(document).on('keydown.game', @keydown).on('keyup.game', @keyup)
 
@@ -45,8 +47,6 @@ class Tetrus.GameController extends Batman.Controller
   stop: ->
     @game.stop()
     $(document).off('keydown.game').off('keyup.game')
-
-    setTimeout(@disconnect, 5000)
 
   disconnect: =>
     @set('connecting', false)
@@ -92,7 +92,12 @@ class Tetrus.GameController extends Batman.Controller
     return
 
   send: (message) ->
-    @peerChannel.send(JSON.stringify(message))
+    try
+      @peerChannel.send(JSON.stringify(message))
+    catch
+      Tetrus.Flash.error("Communication Error")
+      @stop()
+      @disconnect()
 
   pollForTimeout: ->
     lastCheck = 0
