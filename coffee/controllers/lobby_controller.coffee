@@ -54,8 +54,11 @@ class Tetrus.LobbyController extends Batman.Controller
     if @get('pending')
       Tetrus.Flash.message('You still have a pending invitation')
     else
-      @set('sentInvite', new Tetrus.Invite(username: view.get('peer').username, isSource: true)).send()
-      @set('pending', true)
+      if webrtcDetectedBrowser == view.get('peer').browser
+        @set('sentInvite', new Tetrus.Invite(username: view.get('peer').username, isSource: true)).send()
+        @set('pending', true)
+      else
+        Tetrus.Flash.message('Playing with different browsers is not currently supported by WebRTC')
 
   cancelInvite: (node, event, view) ->
     if @get('sentInvite')

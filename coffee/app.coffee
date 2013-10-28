@@ -68,6 +68,7 @@ class window.Tetrus extends Batman.App
       Batman.redirect('/')
 
 $ ->
+  $('body').addClass("webrtc-#{webrtcDetectedBrowser}")
   Tetrus.set('hostAddr', window.location.host)
   Tetrus.reset()
   Tetrus.run()

@@ -100,11 +100,11 @@ func (s *Server) ParseBrowser(r *http.Request) string {
 	version, _ := strconv.Atoi(versions[0])
 	if browser == "chrome" {
 		if version >= 23 {
-			return "Chrome"
+			return browser
 		}
 	} else if browser == "firefox" {
 		if version >= 22 {
-			return "Firefox"
+			return browser
 		}
 	}
 	return ""

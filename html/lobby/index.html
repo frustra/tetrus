@@ -1,6 +1,8 @@
 <ul class="peers">
   <li data-showif="peers.length">you're here with:</li>
   <li data-foreach-peer="peers">
+    <span class="chrome-logo" data-showif="peer.browser | equals 'chrome'"></span>
+    <span class="firefox-logo" data-showif="peer.browser | equals 'firefox'"></span>
     <a data-bind="peer.username" data-event-click="sendInvite"></a>
     <span data-showif="peer.username | equals sentInvite.username" class="smaller">- invite pending: <a data-event-click="cancelInvite">cancel</a></span>
   </li>
