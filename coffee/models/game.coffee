@@ -60,4 +60,3 @@ class Tetrus.Game extends Batman.Object
         all-- if @board.storage[(x + y * @board.width) * 4 + 3] > 0
       if all == 0
         @board.removeLine(y)
-

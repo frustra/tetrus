@@ -43,6 +43,8 @@ class Tetrus.Piece extends Batman.Object
 
   constructor: (peer, @storage) ->
     @position = x: 0, y: 0
+    @centerX = 0
+    @centerY = 0
     @width = 0
     @height = 0
     unless @storage
@@ -50,6 +52,11 @@ class Tetrus.Piece extends Batman.Object
       piece = pieces[index]
       @height = piece.length
       @width = piece[0].length
+      @centerX = (@width - 1) / 2
+      @centerY = (@height - 1) / 2
+      if @width == 3
+        @centerX = Math.floor(@centerX)
+        @centerY = Math.ceil(@centerY)
 
       alpha = (if peer then @constructor.peerAlpha else @constructor.playerAlpha)
 
@@ -74,6 +81,8 @@ class Tetrus.Piece extends Batman.Object
     storage = (x for x in @storage)
     width = @width
     height = @height
+    centerX = @centerX
+    centerY = @centerY
     for i in [0...times] by 1
       targetStorage = new Array(storage.length)
       for x in [0...width] by 1
@@ -86,17 +95,22 @@ class Tetrus.Piece extends Batman.Object
           targetStorage[targetOffset + 3] = storage[sourceOffset + 3]
 
       storage = (x for x in targetStorage)
+      tmp = centerX
+      centerX = height - centerY - 1
+      centerY = tmp
       tmp = width
       width = height
       height = tmp
 
-    deltaX = @width - width
-    deltaY = 0 # Math.floor(height / 2 - @height / 2)
+    deltaX = Math.floor(@centerX - centerX)
+    deltaY = Math.floor(@centerY - centerY)
 
     commit = (dx, dy) =>
       @storage = storage
       @width = width
       @height = height
+      @centerX = centerX
+      @centerY = centerY
       @position.x += deltaX + dx
       @position.y += deltaY + dy
       @fire('change')

@@ -19,7 +19,7 @@ class Tetrus.Board
     @storage[offset + 3] = color.a
 
   removeLine: (y) ->
-    endIndex = ((y + 1) * @width * 4 - 4)
+    endIndex = ((y + 1) * @width * 4 - 1)
     for i in [endIndex..0] by -1
       if i >= @width * 4
         @storage[i] = @storage[i - @width * 4]
