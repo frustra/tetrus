@@ -70,13 +70,7 @@ class Tetrus.Game
       for x in [0...@board.width] by 1
         all-- if @board.storage[(x + y * @board.width) * 4 + 3] > 0
       if all == 0
-        for x in [0...@board.width] by 1
-          for y2 in [y...0] by -1
-              @board.storage[(x + y2 * @board.width) * 4] = @board.storage[(x + (y2 - 1) * @board.width) * 4]
-              @board.storage[(x + y2 * @board.width) * 4 + 1] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 1]
-              @board.storage[(x + y2 * @board.width) * 4 + 2] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 2]
-              @board.storage[(x + y2 * @board.width) * 4 + 3] = @board.storage[(x + (y2 - 1) * @board.width) * 4 + 3]
-          @board.storage[(x + y2 * @board.width) * 4 + 3] = 0
+        @board.removeLine(y)
 
   collide: (storage, x, y, width, height) ->
     if x < 0 or y < 0 or x + (width - 1) >= @board.width or y + (height - 1) >= @board.height

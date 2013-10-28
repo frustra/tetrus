@@ -53,13 +53,13 @@ class Tetrus.GamePlayView extends Batman.View
 
     shaderList =
       vertex:
-        url: "shaders/vertex.vert"
+        url: "/static/shaders/vertex.vert"
       board:
-        url: "shaders/board.frag"
+        url: "/static/shaders/board.frag"
       player:
-        url: "shaders/player.frag"
+        url: "/static/shaders/player.frag"
       effects:
-        url: "shaders/effects.frag"
+        url: "/static/shaders/effects.frag"
 
     @loadShaders shaderList, =>
       @shaders["board"] = gl.createProgram()
