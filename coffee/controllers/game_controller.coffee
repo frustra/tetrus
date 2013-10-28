@@ -28,8 +28,7 @@ class Tetrus.GameController extends Batman.Controller
 
     @game.on 'game:over', => @stop()
 
-    Batman.DOM.addEventListener(document, 'keydown', @keydown)
-    Batman.DOM.addEventListener(document, 'keyup', @keyup)
+    $(document).on('keydown.game', @keydown).on('keyup.game', @keyup)
 
     @game.player.setNextPiece()
     @game.fire('game:ready')
@@ -37,9 +36,7 @@ class Tetrus.GameController extends Batman.Controller
 
   stop: ->
     @game.stop()
-
-    Batman.DOM.removeEventListener(document, 'keydown', @keydown)
-    Batman.DOM.removeEventListener(document, 'keyup', @keydown)
+    $(document).off('keydown.game').off('keyup.game')
 
     setTimeout(@disconnect, 5000)
 
@@ -115,6 +112,7 @@ class Tetrus.GameController extends Batman.Controller
       when 90 then @game.keys.z(pressed)
       when 38
       else return true
+    return false
 
   keydown: (event) => event.preventDefault() unless @_setKey(event.keyCode, true)
   keyup: (event) => event.preventDefault() unless @_setKey(event.keyCode, false)

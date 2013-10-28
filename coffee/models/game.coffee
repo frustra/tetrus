@@ -22,11 +22,12 @@ class Tetrus.Game extends Batman.Object
 
   loop: =>
     return unless @running
-    @keys.process()
-    setTimeout(@loop, 20)
+    @fall() if @dropping
+    setTimeout(@loop, @speed / 15)
 
   fall: ->
     unless @player.piece.move(0, 1, @board)
+      @dropping = false
       @placePiece(@player.piece)
       @player.setNextPiece()
 
@@ -34,6 +35,12 @@ class Tetrus.Game extends Batman.Object
     return unless @running
     @fall()
     setTimeout(@fallLoop, @speed)
+
+  drop: ->
+    @dropping = false
+    while @player.piece.move(0, 1, @board) then
+    @placePiece(@player.piece)
+    @player.setNextPiece()
 
   placePiece: (piece) ->
     if piece.position.y <= 0
