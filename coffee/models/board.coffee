@@ -44,9 +44,14 @@ class Tetrus.Board
         if piece.storage[(x + y * piece.width) * 4 + 3] > 0
           targetOffset = (piece.position.x + x + (piece.position.y + y) * @width) * 4
           sourceOffset = (x + y * piece.width) * 4
-          @storage[targetOffset] = piece.storage[sourceOffset]
-          @storage[targetOffset + 1] = piece.storage[sourceOffset + 1]
-          @storage[targetOffset + 2] = piece.storage[sourceOffset + 2]
+          if @storage[targetOffset + 3] > 0
+            @storage[targetOffset] = piece.storage[sourceOffset] * 0.5 + @storage[targetOffset] * 0.5
+            @storage[targetOffset + 1] = piece.storage[sourceOffset + 1] * 0.5 + @storage[targetOffset + 1] * 0.5
+            @storage[targetOffset + 2] = piece.storage[sourceOffset + 2] * 0.5 + @storage[targetOffset + 2] * 0.5
+          else
+            @storage[targetOffset] = piece.storage[sourceOffset]
+            @storage[targetOffset + 1] = piece.storage[sourceOffset + 1]
+            @storage[targetOffset + 2] = piece.storage[sourceOffset + 2]
           @storage[targetOffset + 3] = 255
 
     return
