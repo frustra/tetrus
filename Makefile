@@ -5,10 +5,11 @@ uglifyjs = node_modules/.bin/uglifyjs
 precedence = coffee/app.coffee coffee/lib coffee/models coffee/controllers coffee/views
 libs = polyfills,jquery-*,glmatrix-*,webrtc-*,batman,batman.jquery
 
-production: install-dependencies assets server
+production: install-dependencies assets compile-server
 assets: css js manifest
 
 compile-server:
+	go get
 	go build
 
 install-dependencies:
