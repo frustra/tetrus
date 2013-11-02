@@ -1,7 +1,9 @@
 #!/bin/sh
 
 command -v md5sum >/dev/null 2>&1 && cmd=md5sum
-test $cmd || command -v md5 >/dev/null 2>&1 && cmd=md5 || exit 1
+if [ -z $cmd ]; then
+	command -v md5 >/dev/null 2>&1 && cmd=md5 || exit 1
+fi
 
 echo "{" > manifest.json
 
