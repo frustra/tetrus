@@ -26,20 +26,30 @@ class Tetrus.LobbyController extends Batman.Controller
       when "invite:accepted"
         @unset('pending')
         @get('receivedInvites').forEach (invite) -> invite.reject()
-        Tetrus.play(@unset('sentInvite'))
+        invite = @unset('sentInvite')
+        invite.isServer = message.session.host == 'yes'
+        invite.set('session', message.session)
+        Tetrus.play(invite)
 
       when "invite:rejected"
-        Tetrus.Flash.message("#{@sentInvite.get('username')} rejected your invitation")
         @unset('pending')
         @unset('sentInvite')
+        Tetrus.Flash.message("#{@sentInvite.get('username')} rejected your invitation")
 
       when "invite:received"
-        @get('receivedInvites').set(message.invite.username, new Tetrus.Invite(message.invite))
+        @get('receivedInvites').set(message.invite.username, invite = new Tetrus.Invite(message.invite))
+        invite.set('isServer', message.session.host == 'any' or message.session.host == 'yes')
+        invite.set('session', message.session)
         Tetrus.Flash.message("Got invitation from #{message.invite.username}")
 
       when "invite:cancelled"
         @get('receivedInvites').unset(message.invite.username)
         Tetrus.Flash.message("#{message.invite.username} cancelled their invitation")
+
+      when "invite:invalid"
+        @unset('pending')
+        @unset('sentInvite')
+        Tetrus.Flash.message("Connections between #{webrtcDetectedBrowser} #{webrtcDetectedVersion} and #{message.peer_browser.name} #{message.peer_browser.major} not supported")
 
   _attachSocketListeners: ->
     Tetrus.on 'socket:message', @_boundOnMessage = @_onMessage.bind(this)
@@ -54,11 +64,8 @@ class Tetrus.LobbyController extends Batman.Controller
     if @get('pending')
       Tetrus.Flash.message('You still have a pending invitation')
     else
-      if webrtcDetectedBrowser == view.get('peer').browser
-        @set('sentInvite', new Tetrus.Invite(username: view.get('peer').username, isSource: true)).send()
-        @set('pending', true)
-      else
-        Tetrus.Flash.message('Playing with different browsers is not currently supported by WebRTC')
+      @set('sentInvite', new Tetrus.Invite(username: view.get('peer').username, isServer: false)).send()
+      @set('pending', true)
 
   cancelInvite: (node, event, view) ->
     if @get('sentInvite')

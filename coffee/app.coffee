@@ -25,6 +25,7 @@ class window.Tetrus extends Batman.App
     console.err(message)
 
   @reset: ->
+    @stopKeepAlive()
     if @conn
       @conn.close()
       delete @conn
@@ -50,6 +51,8 @@ class window.Tetrus extends Batman.App
           @reset()
         else if message.type == 'connected'
           @fire('socket:connected')
+          @startKeepAlive()
+        else if message.type == 'pong'
         else
           @fire('socket:message', message)
 
@@ -58,7 +61,7 @@ class window.Tetrus extends Batman.App
       onerror: (event) => @fire('socket:error', 'Unexpected Error')
 
   @play: (invite) ->
-    @set('peer', username: invite.get('username'), isServer: !invite.get('isSource'))
+    @set('peer', username: invite.get('username'), isServer: invite.get('isServer'), session: invite.get('session'))
     Batman.redirect('/play')
 
   @attachGlobalErrorHandler: ->
@@ -66,6 +69,14 @@ class window.Tetrus extends Batman.App
       Tetrus.Flash.error(err)
       @reset()
       Batman.redirect('/')
+
+  @startKeepAlive: ->
+    @_keepAliveInterval = setInterval =>
+      @conn?.sendJSON(command: 'ping')
+    , 15 * 1000
+
+  @stopKeepAlive: ->
+    clearInterval(@_keepAliveInterval) if @_keepAliveInterval
 
 $ ->
   $('body').addClass("webrtc-#{webrtcDetectedBrowser}")

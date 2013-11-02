@@ -4,14 +4,25 @@ class Tetrus.GameController extends Batman.Controller
   constructor: ->
     super
     @iceServers = ['stun:stun.l.google.com:19302']
-    @connectionParams = [
-      #{ RtpDataChannels: true }
-      { DtlsSrtpKeyAgreement: true }
-    ]
 
   play: ->
     @peer = new Tetrus.Peer(Tetrus.get('peer'))
     @game = new Tetrus.Game
+
+    @connectionParams = [
+      { DtlsSrtpKeyAgreement: true }
+    ]
+
+    if @peer.get('session').type == 'rtp'
+      @connectionParams.push { RtpDataChannels: true }
+
+    else if @peer.get('session').type != 'sctp'
+      console.error "Invalid connection type", @peer.get('session').type
+      Tetrus.Flash.error("Invalid connection type")
+      return
+
+    console.log @peer.get('session')
+
     @set('isServer', @peer.get('isServer'))
     @_negotiate()
 
@@ -51,6 +62,8 @@ class Tetrus.GameController extends Batman.Controller
   disconnect: =>
     @set('connecting', false)
     @set('connected', false)
+    @peerChannel?.close()
+    @peerConnection?.close()
     delete @peerChannel
     delete @peerConnection
 
@@ -124,7 +137,7 @@ class Tetrus.GameController extends Batman.Controller
     channel.onmessage = (event) => @_onMessage(event)
 
     channel.onopen = =>
-      Batman.developer.log("peer channel opened")
+      Batman.developer.log("peer channel opened with protocol", channel.protocol)
       @set('connecting', false)
       @set('connected', true)
       @start()
@@ -159,7 +172,9 @@ class Tetrus.GameController extends Batman.Controller
         @peerConnection.setLocalDescription(description)
         Batman.developer.log("local sdp", description.sdp)
         Tetrus.conn.sendJSON(command: 'peer:offer', description: description, username: @peer.get('username'))
-      , null, null
+      , (err) =>
+        Tetrus.Flash.error("Failed to negotiate connection")
+        @disconnect()
 
     Tetrus.on 'socket:message', @_onServerMessage = (message) =>
       setRemoteDescription = =>
@@ -176,7 +191,9 @@ class Tetrus.GameController extends Batman.Controller
               @peerConnection.setLocalDescription(description)
               Batman.developer.log("local sdp", description.sdp)
               Tetrus.conn.sendJSON(command: 'peer:answer', description: description)
-            , null, null
+            , (err) =>
+              Tetrus.Flash.error("Failed to negotiate connection")
+              @disconnect()
 
           when "peer:answer"
             setRemoteDescription()
