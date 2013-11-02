@@ -5,6 +5,7 @@ uniform vec2 u_piecepos;
 uniform vec2 u_piecesize;
 uniform vec2 u_boardsize;
 uniform float u_blocksize;
+uniform float u_xoffset;
 
 uniform sampler2D u_buffer;
 uniform vec2 u_size;
@@ -14,10 +15,10 @@ void main(void) {
   if (u_size.x == 0.0 && u_size.y == 0.0) gl_FragColor = vec4(0.0);
 
   vec2 offset = vec2(u_piecepos.x, u_boardsize.y - u_piecepos.y - u_piecesize.y);
-  vec2 block = floor(gl_FragCoord.xy / u_blocksize) - offset;
+  vec2 block = floor(vec2(gl_FragCoord.x - (u_xoffset * u_blocksize), gl_FragCoord.y) / u_blocksize) - offset;
 
   if (block.x >= 0.0 && block.y >= 0.0 && block.x < u_piecesize.x && block.y < u_piecesize.y) {
-    vec2 pixel = mod(gl_FragCoord.xy, u_blocksize);
+    vec2 pixel = mod(vec2(gl_FragCoord.x - (u_xoffset * u_blocksize), gl_FragCoord.y), u_blocksize);
     vec2 tmp = (block + vec2(0.5)) / u_piecesize;
     vec4 color = texture2D(u_piece, vec2(tmp.x, 1.0 - tmp.y));
 

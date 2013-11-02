@@ -20,6 +20,7 @@ uniformList = [
   "u_piecesize"
   "u_buffer"
   "u_size"
+  "u_xoffset"
 ]
 
 class Tetrus.GamePlayView extends Batman.View
@@ -256,14 +257,15 @@ class Tetrus.GamePlayView extends Batman.View
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.game.player.nextPiece.width, @controller.game.player.nextPiece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.game.player.nextPiece.storage))
 
     gl.useProgram(gl.shaders["player1"])
-    gl.uniform2f(gl.shaders["player1"].uniform["u_piecepos"], (if @controller.game.player.nextPiece.width > 2 then 1 else 2), 1)
+    gl.uniform1f(gl.shaders["player1"].uniform["u_xoffset"], 2 - @controller.game.player.nextPiece.width / 2)
+    gl.uniform2f(gl.shaders["player1"].uniform["u_piecepos"], 1, 1)
     gl.uniform2f(gl.shaders["player1"].uniform["u_piecesize"], @controller.game.player.nextPiece.width, @controller.game.player.nextPiece.height)
 
   loadShaders: (shaderList, callback) ->
     for name of shaderList
       do (name) ->
         new Batman.Request
-          url: shaderList[name].url
+          url: shaderList[name].url + "?" + Date.now()
           success: (data) ->
             shaderList[name].source = data
             complete = true
