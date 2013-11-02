@@ -38,7 +38,7 @@ pieces = [
 ]
 
 class Tetrus.Piece extends Batman.Object
-  @playerAlpha = 255
+  @playerAlpha = 240
   @peerAlpha = 200
 
   constructor: (peer, @storage) ->
