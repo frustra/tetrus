@@ -52,10 +52,14 @@ class Tetrus.Game extends Batman.Object
     @placePiece(@player.piece)
     @player.setNextPiece()
 
-  placePiece: (piece) ->
-    if piece.position.y <= 0
+  lose: ->
+    if @running
       Tetrus.Flash.message("Game Over")
       @stop()
+
+  placePiece: (piece) ->
+    if piece.position.y <= 0
+      @lose()
       return
 
     @board.place(piece)

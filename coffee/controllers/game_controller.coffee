@@ -44,6 +44,7 @@ class Tetrus.GameController extends Batman.Controller
         @send(type: 'piece:place', piece: { storage: piece.storage, position: piece.position, width: piece.width, height: piece.height })
 
     @game.on 'game:over', =>
+      @send(type: 'game:lose')
       @stop()
       setTimeout(@disconnect, 5000)
 
@@ -95,6 +96,8 @@ class Tetrus.GameController extends Batman.Controller
         @game.speed += message.deltaSpeed
         @game.score += message.deltaScore
         @game.board.removeLine(line) for line in message.lines
+      when "game:lose"
+        @game.lose()
       else
         console.error(message)
         Tetrus.Flash.error("Communication Error")
