@@ -21,8 +21,6 @@ class Tetrus.GameController extends Batman.Controller
       Tetrus.Flash.error("Invalid connection type")
       return
 
-    console.log @peer.get('session')
-
     @set('isServer', @peer.get('isServer'))
     @_negotiate()
 

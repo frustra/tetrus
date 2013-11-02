@@ -27,7 +27,7 @@ class Tetrus.LobbyController extends Batman.Controller
         @unset('pending')
         @get('receivedInvites').forEach (invite) -> invite.reject()
         invite = @unset('sentInvite')
-        invite.isServer = message.session.host == 'yes'
+        invite.set('isServer', message.session.host == 'yes')
         invite.set('session', message.session)
         Tetrus.play(invite)
 
