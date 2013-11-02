@@ -38,8 +38,8 @@ class Tetrus.Game extends Batman.Object
   fall: ->
     unless @player.piece.move(0, 1, @board)
       @dropping = false
-      @placePiece(@player.piece)
-      @player.setNextPiece()
+      if @placePiece(@player.piece)
+        @player.setNextPiece()
 
   fallLoop: =>
     return unless @running
@@ -59,13 +59,14 @@ class Tetrus.Game extends Batman.Object
 
   placePiece: (piece) ->
     if piece.position.y <= 0
+      lost = true
       @lose()
-      return
 
     @board.place(piece)
-    @clearLines()
+    @clearLines() unless lost
 
     @fire('piece:place')
+    return !lost
 
   clearLines: ->
     for y in [0...@board.height] by 1
