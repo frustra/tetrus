@@ -61,6 +61,12 @@ class Tetrus.GamePlayView extends Batman.View
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
   renderPiece: (gl) ->
+    @updatePiece(gl)
+
+    gl.useProgram(gl.shaders["player1"])
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
   viewDidAppear: ->
     # this is getting called twice for some reason
@@ -82,7 +88,8 @@ class Tetrus.GamePlayView extends Batman.View
         @boardGL = @startRendering(boardCanvas, shaderList)
         @pieceGL = @startRendering(pieceCanvas, shaderList)
 
-        @initBuffers(@boardGL)
+        @initBoardBuffers(@boardGL)
+        @initPieceBuffers(@pieceGL)
 
         @fpsTimer()
         do animloop = =>
@@ -133,7 +140,7 @@ class Tetrus.GamePlayView extends Batman.View
 
     return gl
 
-  initBuffers: (gl) ->
+  initPieceBuffers: (gl) ->
     vertexPositionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer)
     vertices = [
@@ -144,56 +151,49 @@ class Tetrus.GamePlayView extends Batman.View
     ]
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
 
-    @boardTexture = gl.createTexture()
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, @boardTexture)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    pMatrix = mat4.ortho(0, gl.viewportWidth, gl.viewportHeight, 0, 0.001, 100000)
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
 
-    @playerOneTexture = gl.createTexture()
-    gl.activeTexture(gl.TEXTURE1)
-    gl.bindTexture(gl.TEXTURE_2D, @playerOneTexture)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    @pieceTexture = @createTexture(gl, gl.TEXTURE0)
+    gl.useProgram(gl.shaders["player1"])
+    gl.uniformMatrix4fv(gl.shaders["player1"].uniform["uPMatrix"], false, pMatrix)
+    gl.vertexAttribPointer(gl.shaders["player1"].vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0)
+    gl.uniform1i(gl.shaders["player1"].uniform["u_piece"], 0)
+    gl.uniform2f(gl.shaders["player1"].uniform["u_boardsize"], 6, 4)
+    gl.uniform1f(gl.shaders["player1"].uniform["u_blocksize"], @blockSize)
+    gl.uniform2f(gl.shaders["player1"].uniform["u_size"], 0, 0)
 
-    @playerTwoTexture = gl.createTexture()
-    gl.activeTexture(gl.TEXTURE2)
-    gl.bindTexture(gl.TEXTURE_2D, @playerTwoTexture)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    @updatePiece(gl)
 
-    fboTexture1 = gl.createTexture()
-    gl.activeTexture(gl.TEXTURE3)
-    gl.bindTexture(gl.TEXTURE_2D, fboTexture1)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  initBoardBuffers: (gl) ->
+    vertexPositionBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer)
+    vertices = [
+      gl.viewportWidth, gl.viewportHeight
+      0.0, gl.viewportHeight
+      gl.viewportWidth, 0.0
+      0.0, 0.0
+    ]
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
+
+    pMatrix = mat4.ortho(0, gl.viewportWidth, gl.viewportHeight, 0, 0.001, 100000)
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
+
+    @boardTexture = @createTexture(gl, gl.TEXTURE0)
+    @playerOneTexture = @createTexture(gl, gl.TEXTURE1)
+    @playerTwoTexture = @createTexture(gl, gl.TEXTURE2)
+
+    fboTexture1 = @createTexture(gl, gl.TEXTURE3)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.viewportWidth, gl.viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
     @fbo1 = gl.createFramebuffer()
     gl.bindFramebuffer(gl.FRAMEBUFFER, @fbo1)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTexture1, 0)
 
-    fboTexture2 = gl.createTexture()
-    gl.activeTexture(gl.TEXTURE4)
-    gl.bindTexture(gl.TEXTURE_2D, fboTexture2)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    fboTexture2 = @createTexture(gl, gl.TEXTURE4)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.viewportWidth, gl.viewportHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
     @fbo2 = gl.createFramebuffer()
     gl.bindFramebuffer(gl.FRAMEBUFFER, @fbo2)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTexture2, 0)
-
-    pMatrix = mat4.ortho(0, gl.viewportWidth, gl.viewportHeight, 0, 0.001, 100000)
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer)
     gl.useProgram(gl.shaders["board"])
@@ -250,6 +250,15 @@ class Tetrus.GamePlayView extends Batman.View
     gl.uniform2f(gl.shaders["player2"].uniform["u_piecepos"], @controller.game.peer.piece.position.x, @controller.game.peer.piece.position.y)
     gl.uniform2f(gl.shaders["player2"].uniform["u_piecesize"], @controller.game.peer.piece.width, @controller.game.peer.piece.height)
 
+  updatePiece: (gl) ->
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, @pieceTexture)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @controller.game.player.nextPiece.width, @controller.game.player.nextPiece.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(@controller.game.player.nextPiece.storage))
+
+    gl.useProgram(gl.shaders["player1"])
+    gl.uniform2f(gl.shaders["player1"].uniform["u_piecepos"], (if @controller.game.player.nextPiece.width > 2 then 1 else 2), 1)
+    gl.uniform2f(gl.shaders["player1"].uniform["u_piecesize"], @controller.game.player.nextPiece.width, @controller.game.player.nextPiece.height)
+
   loadShaders: (shaderList, callback) ->
     for name of shaderList
       do (name) ->
@@ -263,6 +272,16 @@ class Tetrus.GamePlayView extends Batman.View
                 complete = false
                 break
             callback(shaderList) if complete
+
+  createTexture: (gl, id) ->
+    texture = gl.createTexture()
+    gl.activeTexture(id)
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    return texture
 
   compileShaders: (gl, shaderList) ->
     for name of shaderList

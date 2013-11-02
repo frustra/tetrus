@@ -11,6 +11,7 @@ uniform vec2 u_size;
 
 void main(void) {
   gl_FragColor = texture2D(u_buffer, gl_FragCoord.xy / u_size);
+  if (u_size.x == 0.0 && u_size.y == 0.0) gl_FragColor = vec4(0.0);
 
   vec2 offset = vec2(u_piecepos.x, u_boardsize.y - u_piecepos.y - u_piecesize.y);
   vec2 block = floor(gl_FragCoord.xy / u_blocksize) - offset;
