@@ -1,6 +1,7 @@
 <h3>playing with <span data-bind="peer.username"></span></h3>
 
-<div id="playcontainer">
+<h4 id="connecting-indicator" data-showif="connecting">connecting...</h4>
+<div id="playcontainer" data-showif="connected">
   <canvas id="boardcanvas" width="250" height="500">
     Your browser doesn't appear to support the HTML5 <b>&lt;canvas&gt;</b> element.
   </canvas>
