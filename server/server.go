@@ -33,13 +33,13 @@ type Conn struct {
 }
 
 type Browser struct {
-	Name string `json:"name"`
-	Major int `json:"major"`
+	Name  string `json:"name"`
+	Major int    `json:"major"`
 }
 
 type Player struct {
 	conn     *Conn
-	Username string `json:"username"`
+	Username string   `json:"username"`
 	Browser  *Browser `json:"browser"`
 
 	peer *Player
@@ -326,7 +326,7 @@ func (s *Server) RelayInviteCommand(command string, source *Player, message Map)
 	if targetName, ok := targetName.(string); ok {
 		target := s.Players[targetName]
 		if target != nil {
-			session := GetSession(source.Browser, target.Browser)
+			session := GetSession(target.Browser, source.Browser)
 			if session != nil {
 				target.conn.Send(Map{"type": command, "invite": Map{"username": source.Username}, "session": session})
 			} else {
