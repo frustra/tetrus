@@ -17,7 +17,7 @@ It uses:
 [WebSockets]: http://en.wikipedia.org/wiki/WebSocket
 [Go]: http://golang.org/
 
-### play it at [tetrus.frustra.org](tetrus.frustra.org)
+### play it at [tetrus.frustra.org](http://tetrus.frustra.org)
 
 ## Developing
 
