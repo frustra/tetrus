@@ -26,7 +26,7 @@ js: dev-js
 	mv static/master.min.js static/master.js
 
 css:
-	${lessc} -O3 --yui-compress less/master.less > static/master.css
+	${lessc} -O2 -x less/master.less > static/master.css
 
 
 dev-assets: clean-manifest dev-css dev-js
