@@ -1,3 +1,5 @@
+SHELL=/bin/bash
+
 lessc = node_modules/.bin/lessc
 coffee = node_modules/.bin/coffee
 uglifyjs = node_modules/.bin/uglifyjs
