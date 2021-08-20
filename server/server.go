@@ -32,15 +32,9 @@ type Conn struct {
 	*websocket.Conn
 }
 
-type Browser struct {
-	Name  string `json:"name"`
-	Major int    `json:"major"`
-}
-
 type Player struct {
 	conn     *Conn
 	Username string   `json:"username"`
-	Browser  *Browser `json:"browser"`
 
 	peer *Player
 }
@@ -100,76 +94,6 @@ type Session struct {
 	Host string `json:"host"`
 }
 
-func GetSession(a, b *Browser) *Session {
-	s := &Session{}
-	if a.Name == "firefox" {
-		switch b.Name {
-		case "firefox":
-			s.Type = "sctp"
-			s.Host = "any"
-		case "chrome":
-			if b.Major > 30 {
-				s.Type = "sctp"
-				s.Host = "yes"
-			} else {
-				return nil
-			}
-		default:
-			return nil
-		}
-	} else if a.Name == "chrome" {
-		switch b.Name {
-		case "firefox":
-			if a.Major > 30 {
-				s.Type = "sctp"
-				s.Host = "no"
-			} else {
-				return nil
-			}
-		case "chrome":
-			if a.Major > 30 && b.Major > 30 {
-				s.Type = "sctp"
-				s.Host = "any"
-			} else if a.Major <= 30 && b.Major <= 30 {
-				s.Type = "rtp"
-				s.Host = "any"
-			} else {
-				return nil
-			}
-		default:
-			return nil
-		}
-	}
-	return s
-}
-
-func (s *Server) ParseBrowser(conn *Conn, r *http.Request) *Browser {
-	browsers, browserExists := r.Form["browser"]
-	versions, versionExists := r.Form["version"]
-	if !browserExists || !versionExists || len(browsers) != 1 || len(versions) != 1 {
-		return nil
-	}
-
-	browser := browsers[0]
-	version, _ := strconv.Atoi(versions[0])
-	b := &Browser{browser, version}
-
-	if browser == "chrome" {
-		if version >= 25 {
-			return b
-		}
-		conn.SendError("Chrome support starts at version 25")
-	} else if browser == "firefox" {
-		if version >= 22 {
-			return b
-		}
-		conn.SendError("Firefox support starts at version 22")
-	} else {
-		conn.SendError("browser does not support webrtc")
-	}
-	return nil
-}
-
 func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
@@ -195,18 +119,13 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	}
 	username := usernames[0]
 
-	browser := s.ParseBrowser(conn, r)
-	if browser == nil {
-		return
-	}
-
 	_, exists = s.Players[username]
 	if exists {
 		conn.SendError("username already in use")
 		return
 	}
 
-	p := &Player{conn: conn, Username: username, Browser: browser}
+	p := &Player{conn: conn, Username: username}
 
 	for _, player := range s.Players {
 		player.conn.Send(Map{"type": "player:joined", "player": p})
@@ -216,7 +135,7 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	conn.Send(Map{"type": "connected"})
 
 	if s.Debug {
-		log.Println("Player", username, "connected using", browser)
+		log.Println("Player", username, "connected")
 	}
 	defer func() {
 		if p.peer != nil {
@@ -326,11 +245,14 @@ func (s *Server) RelayInviteCommand(command string, source *Player, message Map)
 	if targetName, ok := targetName.(string); ok {
 		target := s.Players[targetName]
 		if target != nil {
-			session := GetSession(target.Browser, source.Browser)
+			session := &Session{
+				Type: "sctp",
+				Host: "any",
+			}
 			if session != nil {
 				target.conn.Send(Map{"type": command, "invite": Map{"username": source.Username}, "session": session})
 			} else {
-				source.conn.Send(Map{"type": "invite:invalid", "peer_browser": target.Browser})
+				source.conn.Send(Map{"type": "invite:invalid"})
 			}
 		} else {
 			source.conn.SendError("invalid peer")
